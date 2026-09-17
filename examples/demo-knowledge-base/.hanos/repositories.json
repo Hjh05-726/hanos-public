@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "template_notice": "Replace {{DEMO_ROOT}} with this demo directory's absolute path before a runtime evaluation.",
+  "repositories": [
+    {
+      "id": "global",
+      "name": "Demo global knowledge",
+      "type": "global",
+      "path": "{{DEMO_ROOT}}/global",
+      "status": "active",
+      "aliases": ["global", "shared"]
+    },
+    {
+      "id": "orbit-garden",
+      "name": "Orbit Garden",
+      "type": "project",
+      "project_name": "Orbit Garden",
+      "path": "{{DEMO_ROOT}}/projects/orbit-garden",
+      "status": "active",
+      "aliases": ["orbit", "garden project"]
+    }
+  ]
+}

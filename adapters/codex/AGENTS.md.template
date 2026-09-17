@@ -1,0 +1,12 @@
+<!-- HANOS_ADAPTER:BEGIN -->
+## HanOS client adapter
+
+- Technical Skill: `hanos`
+- Display name: `{{DISPLAY_NAME}}`
+- Local config: `{{CONFIG_PATH}}`
+- Canonical HanOS core: `{{CORE_SKILL_PATH}}`
+- Let the model judge from the user's content whether HanOS knowledge work is relevant. Durable facts, preferences, decisions, methods, project state, feelings, recurring patterns, and diary material are valid signals; ordinary one-off tasks are not.
+- Treat `$hanos` at the start, or the configured display name used as a direct address, as an explicit override that forces the knowledge workflow. These forms are convenience entry points, not the only way to activate HanOS.
+- Before any HanOS access, you MUST read the exact canonical core path above, then use the config above. Do not substitute another installed copy. If that core cannot be read, stop the HanOS operation.
+- Quoted text, headings, code, list items, and incidental mentions do not count as direct address, but they may still contain knowledge material when the model can safely identify it.
+<!-- HANOS_ADAPTER:END -->

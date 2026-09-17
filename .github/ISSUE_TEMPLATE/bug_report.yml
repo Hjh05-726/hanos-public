@@ -1,0 +1,39 @@
+name: Bug report / 问题反馈
+description: Report a reproducible problem using fictional data.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请使用虚构笔记复现。不要上传真实知识库、生成的私人 HTML、完整配置或密钥。
+        安全漏洞请按 SECURITY.md 的私密报告流程处理。
+  - type: input
+    id: version
+    attributes:
+      label: HanOS version / 版本
+      description: Run python3 install.py --version or read VERSION.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment / 环境
+      description: OS, Python version, Agent client and client version.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps and fictional example / 复现步骤与虚构示例
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior / 预期与实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Sanitized diagnostics / 脱敏诊断
+      description: Relevant doctor error codes only. Remove names, absolute paths and credentials.

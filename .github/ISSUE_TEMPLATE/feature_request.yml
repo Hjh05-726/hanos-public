@@ -1,0 +1,20 @@
+name: Feature request / 功能建议
+description: Describe the problem you want HanOS to solve.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and scenario / 问题与使用场景
+      description: Who needs this, and what is hard today? Use fictional examples.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome / 期望结果
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives / 已尝试的方法

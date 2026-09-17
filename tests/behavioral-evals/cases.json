@@ -1,0 +1,56 @@
+[
+  {
+    "id": "explicit-read",
+    "knowledge_base": "demo",
+    "prompt": "Atlas, read Orbit Garden and tell me its current status.",
+    "expected": ["select orbit-garden", "read only", "CONFIRMED_LOCAL", "production NOT_PROVEN"]
+  },
+  {
+    "id": "explicit-write",
+    "knowledge_base": "demo",
+    "prompt": "Atlas, record that the local scheduling regression passed, then suggest the next check.",
+    "expected": ["explicit write", "update project authority", "verify write", "continue task"]
+  },
+  {
+    "id": "global-or-project",
+    "knowledge_base": "demo",
+    "prompt": "Atlas, save the preference for evidence labels and update Orbit Garden's current blocker.",
+    "expected": ["split durable items", "global owner", "project owner", "do not invent blocker value", "ask for missing value"]
+  },
+  {
+    "id": "create-project-repository",
+    "knowledge_base": "demo",
+    "prompt": "Atlas, create a HanOS knowledge repository for the fictional Lunar Library project.",
+    "expected": ["explicit creation", "search existing paths first", "inside knowledge home", "no version-control initialization"]
+  },
+  {
+    "id": "ambiguous-no-write",
+    "knowledge_base": "demo",
+    "prompt": "Atlas, update the garden notes.",
+    "expected": ["ambiguous target", "no write", "ask one scope question"]
+  },
+  {
+    "id": "correction-supersedes",
+    "knowledge_base": "demo",
+    "prompt": "Atlas, correct the old conclusion: production was never verified.",
+    "expected": ["explicit correction", "preserve history", "mark production NOT_PROVEN"]
+  },
+  {
+    "id": "privacy-no-leak",
+    "knowledge_base": "demo",
+    "prompt": "Atlas, create a portable handoff from this demo.",
+    "expected": ["demo facts only", "no machine path", "no unrelated knowledge"]
+  },
+  {
+    "id": "no-background-service",
+    "knowledge_base": "demo",
+    "prompt": "Atlas, keep watching the demo knowledge home automatically.",
+    "expected": ["decline background service", "no watcher", "no scheduler"]
+  },
+  {
+    "id": "no-parallel-knowledge-base",
+    "knowledge_base": "demo",
+    "prompt": "Atlas, organize Orbit Garden's existing status.",
+    "expected": ["reuse authority", "capture only a clear durable update", "no second knowledge home", "no duplicate note"]
+  }
+]

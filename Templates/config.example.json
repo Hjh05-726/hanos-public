@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "identity": {
+    "technical_name": "hanos",
+    "display_name": "Atlas"
+  },
+  "knowledge_home": "/absolute/path/outside/source/hanos-knowledge",
+  "invocation": {
+    "mode": "adaptive",
+    "default_access": "read_and_capture"
+  },
+  "writing": {
+    "automatic_capture": true,
+    "confirm_sensitive": true,
+    "update_existing_before_create": true,
+    "preserve_superseded_history": true
+  },
+  "safety": {
+    "store_secrets": false,
+    "modify_external_projects": false,
+    "modify_cloud_resources": false,
+    "modify_production_data": false
+  }
+}

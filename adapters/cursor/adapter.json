@@ -1,0 +1,8 @@
+{
+  "id": "cursor",
+  "delivery": "generated-thin-wrapper",
+  "skill_path": ".cursor/skills/hanos",
+  "explicit_invocation": "/hanos (override; adaptive judgment is default)",
+  "manual_only_control": "not-applied; core authorization gates apply",
+  "native_runtime_test": "NOT_TESTED"
+}

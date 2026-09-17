@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "repositories": [
+    {
+      "id": "global",
+      "name": "Global knowledge",
+      "type": "global",
+      "path": "{{KNOWLEDGE_HOME}}/global",
+      "status": "active",
+      "aliases": ["global", "shared knowledge"]
+    },
+    {
+      "id": "example-project",
+      "name": "Example project",
+      "type": "project",
+      "project_name": "Example project",
+      "path": "{{KNOWLEDGE_HOME}}/projects/example-project",
+      "status": "active",
+      "aliases": ["example", "example project"]
+    }
+  ]
+}

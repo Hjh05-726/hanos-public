@@ -1,0 +1,12 @@
+---
+name: hanos
+description: Operate the user's local HanOS Markdown knowledge home through explicit or adaptive use, including retrieval, organization, writing, and diary feedback.
+---
+
+# HanOS client adapter
+
+This file is a generated thin wrapper, not the HanOS behavior authority.
+
+1. Read and follow the canonical core at `{{CORE_SKILL_PATH}}`.
+2. Use the local config at `{{CONFIG_PATH}}`.
+3. Keep both entry paths: `/hanos` explicitly requests an operation; adaptive judgment may capture clear, low-risk durable content without it. Follow the core for explicit writes, diary feedback, graph views, memory, and safety gates.

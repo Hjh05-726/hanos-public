@@ -1,0 +1,6 @@
+interface:
+  display_name: "HanOS"
+  short_description: "Operate one private local HanOS Markdown knowledge home"
+  default_prompt: "Use HanOS for explicit knowledge operations or when my message contains durable knowledge; give useful feedback, capture clear low-risk material, and ask before sensitive changes."
+policy:
+  allow_implicit_invocation: true

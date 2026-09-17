@@ -1,0 +1,8 @@
+{
+  "id": "gemini-cli",
+  "delivery": "shared-agent-skills-core",
+  "skill_path": ".agents/skills/hanos",
+  "explicit_invocation": "client-consent-activation",
+  "manual_only_control": "not-documented",
+  "native_runtime_test": "NOT_TESTED"
+}
