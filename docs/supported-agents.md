@@ -8,7 +8,7 @@ locator for every client and `doctor` validates it; clients do not infer paths.
 
 | Client | Discovery | Adaptive use | Manual-only control | Current native evidence |
 |---|---|---|---|---|
-| OpenAI Codex | Shared user Agent Skills path | Model judges relevance; `$hanos` remains an explicit override | Client metadata supplies the canonical core | `PASS`: current identity-bound isolated run, machine-readable core/registry/authority reads with random nonces, structured result, no-write, and evidence-boundary check |
+| OpenAI Codex | Shared user Agent Skills path | Model judges relevance; `$hanos` remains an explicit override | Client metadata supplies the canonical core | `PASS` (2026-09-17): six-step isolated read, record, retrieve, history-preserving correction, do-not-save and installed HTML generation |
 | Claude Code | Generated user Skill wrapper | Model judges relevance; `/hanos` remains an explicit override | Core authorization gates; no wrapper-level manual-only flag | `NOT_TESTED`: the local configured model was rejected before a result |
 | Cursor | Generated user Skill wrapper | Model judges relevance; `/hanos` remains an explicit override | Core authorization gates; no wrapper-level manual-only flag | `NOT_TESTED` |
 | GitHub Copilot / VS Code Agent | Shared user Agent Skills path | Model judges relevance; `/hanos` remains an explicit override | Not applied to the shared standard core | `NOT_TESTED` |
@@ -16,9 +16,10 @@ locator for every client and `doctor` validates it; clients do not infer paths.
 
 ## Evidence boundary
 
-Native-client results above are dated 2026-09-03. They have not been rerun
-against the current release candidate; the current installation and HTML
-regression tests do not extend those native results.
+Codex completed the current six-step fictional journey on 2026-09-17 using
+`codex-cli 0.154.0-alpha.6.2`. Other clients remain unverified; the Claude Code
+attempt is historical (2026-09-03). See the [evaluation results](../tests/behavioral-evals/results.md)
+for exact scope and evidence hashes.
 
 Static tests verify packaging, adapter metadata, installation paths, privacy, and safety rules. They are not native runtime tests. A client remains `NOT_TESTED` until the generated installation is discovered and exercised in that client with the same fictional demo knowledge base.
 
@@ -28,7 +29,7 @@ Local user Skills may not transfer to remote or cloud workers. Install a project
 
 ## Known limitations
 
-- The Codex native result covers an identity-recorded machine-readable core, registry, and project-authority read; structured read output for the explicit-override evaluation; no unrequested write; and evidence labelling. The full trace is retained locally outside the release package. Two corrected cases were independently checked against isolated copies; the complete nine-case automated run remains `NOT_RUN`.
+- The Codex result covers the six-step fictional journey only. Raw traces remain local; macOS was used for this run. The native runner supports macOS/Linux. The complete nine-case automated run remains `NOT_RUN`.
 - A combined Cursor installation contains both the shared standards path and a client wrapper. Collision precedence remains unverified until a Cursor runtime is available.
 - The shared Copilot installation keeps standard-only core frontmatter. Automatic capture still follows the core's low-risk, provenance, and privacy gates.
 - Gemini CLI has no documented per-Skill control equivalent to manual-only invocation; initial client consent and the adaptive core's sensitive-content confirmation rules remain mandatory.

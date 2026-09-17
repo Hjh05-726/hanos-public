@@ -4,6 +4,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import signal
 import secrets
 import shutil
 import subprocess
@@ -392,6 +394,28 @@ def prepare(workspace: Path, client: str) -> tuple[Path, Path, dict[str, str]]:
     return knowledge, workspace / "native-result.txt", expected_result
 
 
+def execute_logged(command: list[str], workspace: Path, trace_path: Path,
+                   error_path: Path, timeout: int) -> str:
+    """Retain partial native evidence on timeout without printing private logs."""
+    if os.name != "posix":
+        raise RuntimeError("Native Codex evaluation currently requires macOS or Linux")
+    with trace_path.open("w", encoding="utf-8") as trace, error_path.open("w", encoding="utf-8") as errors:
+        process = subprocess.Popen(command, cwd=workspace, stdout=trace, stderr=errors,
+                                   text=True, start_new_session=True)
+        try:
+            returncode = process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired as error:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            process.wait()
+            raise RuntimeError(f"native client timed out; inspect retained trace: {trace_path}") from error
+    if returncode != 0:
+        raise RuntimeError(f"native client exited {returncode}; inspect retained trace: {trace_path}")
+    return trace_path.read_text(encoding="utf-8")
+
+
 def run_client(
     client: str,
     executable: Path,
@@ -420,15 +444,9 @@ def run_client(
             json.dumps(RESULT_SCHEMA, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
-        completed = subprocess.run(
-            command,
-            cwd=workspace,
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-        return output_path.read_text(encoding="utf-8"), completed.stdout
+        trace = execute_logged(command, workspace, workspace / "native-trace.jsonl",
+                               workspace / "native-stderr.txt", timeout)
+        return output_path.read_text(encoding="utf-8"), trace
 
     completed = subprocess.run(
         [

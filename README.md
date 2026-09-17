@@ -165,13 +165,13 @@ python3 scripts/demo.py --output /absolute/path/to/new-hanos-demo
 
 | 客户端 | 安装与包结构检查 | 原生运行证据 |
 | --- | --- | --- |
-| OpenAI Codex | 通过 | 有历史局部验证，当前候选版尚未重跑原生评测 |
+| OpenAI Codex | 通过 | 2026-09-17 完成读取、记录、找回、纠正、不记录、生成 HTML 六步验收 |
 | Claude Code | 通过 | 未完成验证 |
 | Cursor | 通过 | 未完成验证 |
 | GitHub Copilot / VS Code | 通过 | 未完成验证 |
 | Gemini CLI | 通过 | 未完成验证 |
 
-当前是源码公开预览阶段。独立公开副本的自动化检查覆盖安装、发布边界、HTML 和星图布局；这些结果不代表全部客户端、操作系统和模型组合已经验证。原生客户端证据日期为 2026-09-03，已有回归记录见下方评测文档。
+当前是源码公开预览阶段。独立公开副本的自动化检查覆盖安装、发布边界、HTML 和星图布局；这些结果不代表全部客户端、操作系统和模型组合已经验证。当前 Codex 原生证据日期为 2026-09-17；公开副本在 macOS 上通过 89 项测试。远端 CI 尚未运行，完整证据见下方评测文档。
 
 详见 [客户端说明](docs/supported-agents.md)、[可移植性报告](docs/portability-report.md)和[评测记录](tests/behavioral-evals/results.md)。
 

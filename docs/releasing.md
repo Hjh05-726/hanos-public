@@ -43,7 +43,7 @@ CI 使用只读仓库权限和固定 Action 提交。工作流存在不等于运
 
 ## 原生客户端验收
 
-需要已登录的 Codex，使用用户已配置的模型和额度，离线 CI 不运行此步骤：
+需要 macOS 或 Linux 上已登录的 Codex，使用用户已配置的模型和额度，离线 CI 不运行此步骤：
 
 ```bash
 python3 tests/behavioral-evals/run_journey.py --workspace /absolute/path/to/new-empty-eval
@@ -56,7 +56,7 @@ python3 tests/behavioral-evals/run_journey.py --workspace /absolute/path/to/new-
 1. 确认公开仓库名称、维护者身份和许可证；确认旧版本授权不被误称为撤回。
 2. 确认工作区、索引、全部将公开的 Git 历史、附件和示例无个人资料。
 3. 测试与 CI 通过；检查 README、版本、变更记录和客户端支持范围一致。
-4. 在仓库 Security 设置启用并实测私密漏洞报告入口，再公开仓库；不能使用公开 Issue 收集漏洞细节。
+4. 目标仓库支持私密漏洞报告时，在 Security 设置启用并实测入口；若只能在公开后启用，公开后立即核实，核实前不宣称该渠道可用。遵循 SECURITY.md 的降级联系方式，不能使用公开 Issue 收集漏洞细节。
 5. 按获授权的目标推送提交和版本标签，在对应提交创建标为 pre-release 的 GitHub Release，附 ZIP、校验值、版本说明与已知限制。
 6. 从 Release 下载一次源码包，核对 SHA256SUMS，在新的本地 home 安装并运行 doctor。记录实际发布 URL、提交和资产哈希。
 

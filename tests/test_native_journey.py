@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import os
 import runpy
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -13,6 +15,38 @@ with mock.patch.object(sys, "path", [str(ROOT / "tests/behavioral-evals"), *sys.
 
 
 class NativeJourneyVerifierTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == "posix", "Native evaluator requires macOS or Linux")
+    def test_timeout_retains_partial_native_output(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            trace, errors = root / "trace.jsonl", root / "stderr.txt"
+            with self.assertRaisesRegex(RuntimeError, "timed out"):
+                JOURNEY["native"].execute_logged(
+                    [sys.executable, "-u", "-c", "import time; print('partial evidence'); time.sleep(30)"],
+                    root, trace, errors, 2,
+                )
+            self.assertIn("partial evidence", trace.read_text())
+            self.assertTrue(errors.is_file())
+
+    @unittest.skipUnless(os.name == "posix", "Native evaluator requires macOS or Linux")
+    def test_timeout_stops_child_process_from_writing_later(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            child = "import time; from pathlib import Path; time.sleep(3); Path('late-write').write_text('unexpected')"
+            parent = (
+                "import subprocess,sys,time; "
+                f"subprocess.Popen([sys.executable, '-c', {child!r}]); "
+                "print('child started', flush=True); time.sleep(30)"
+            )
+            with self.assertRaisesRegex(RuntimeError, "timed out"):
+                JOURNEY["native"].execute_logged(
+                    [sys.executable, "-u", "-c", parent], root,
+                    root / "trace.jsonl", root / "stderr.txt", 2,
+                )
+            self.assertIn("child started", (root / "trace.jsonl").read_text())
+            time.sleep(1.5)
+            self.assertFalse((root / "late-write").exists())
+
     def test_inserting_a_section_preserves_original_but_deleting_history_does_not(self) -> None:
         original = "# Project\n\nStatus: local\n\n## History\nOld observation\n"
         inserted = original.replace("## History", "## Plan\nNew observation\n\n## History")

@@ -1,8 +1,9 @@
 # Portability report
 
-Package verification: 2026-09-16, `81/81` public tests passed in an isolated
-public-only checkout. Native-client evidence below is historical, dated
-2026-09-03; it has not been rerun against the current release candidate.
+Package verification: 2026-09-17, **89/89** public tests passed in an isolated
+public-only checkout on macOS. Codex completed the six-step fictional native
+journey with `codex-cli 0.154.0-alpha.6.2`. CI configuration passed actionlint;
+the hosted Linux/macOS matrix has not run yet.
 
 ```text
 HANOS_PORTABILITY_RESULT=PARTIAL
@@ -47,4 +48,15 @@ KNOWN_COMPATIBILITY_LIMITATIONS:
 - Combined Cursor shared-core and wrapper precedence is not yet verified
 ```
 
-The Codex `PASS` is scoped to the current identity-bound native rerun: machine-readable core discovery, nonce-bearing registry and authority reads, explicit override use, no unrequested write, structured evidence-path/status output, and evidence-boundary handling. Its trace is retained locally outside the release package, so this is current local verification rather than independently reproducible public evidence. The nine shared case definitions pass schema and coverage checks, but their complete automated execution is `NOT_RUN`. Full evidence is in [the evaluation results](../tests/behavioral-evals/results.md); known limitations are maintained in [supported-agents.md](supported-agents.md). Static package success never upgrades an unavailable client's native status.
+The Codex `PASS` covers explicit read, record, retrieve, history-preserving correction,
+do-not-save and installed HTML generation. Machine-readable traces bind client
+identity and actual file operations; manual note review confirms that the old
+value is superseded. The final evaluator-only timeout cleanup patch was verified
+separately with process-group regressions; the installed Skill and generator were
+unchanged. Traces stay local, outside the release package.
+
+The nine shared case definitions pass schema and coverage checks, but their
+complete automated execution is `NOT_RUN`. Full evidence is in
+[the evaluation results](../tests/behavioral-evals/results.md); limitations are
+maintained in [supported-agents.md](supported-agents.md). Static package success
+never upgrades an unavailable client's native status.

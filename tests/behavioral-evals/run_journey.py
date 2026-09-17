@@ -34,11 +34,8 @@ def run_step(executable: str, workspace: Path, name: str, prompt: str, timeout: 
                "installed HanOS core, config and knowledge. Do not consult external knowledge "
                "or shared worklogs. Do not change the installed core, adapters, config or registry. "
                "Atlas, " + prompt]
-    result = subprocess.run(command, cwd=workspace, capture_output=True, text=True, timeout=timeout)
-    (workspace / f"{name}.trace.jsonl").write_text(result.stdout, encoding="utf-8")
-    (workspace / f"{name}.stderr.txt").write_text(result.stderr, encoding="utf-8")
-    if result.returncode != 0:
-        raise RuntimeError(f"{name}: client exited {result.returncode}; inspect local trace")
+    native.execute_logged(command, workspace, workspace / f"{name}.trace.jsonl",
+                          workspace / f"{name}.stderr.txt", timeout)
     answer = output.read_text(encoding="utf-8")
     if not answer.strip():
         raise RuntimeError(f"{name}: no final answer")
