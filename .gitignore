@@ -62,6 +62,8 @@
 !docs/
 !docs/assets/
 !docs/assets/hanos-atlas.png
+!docs/assets/atlas-overview.png
+!docs/assets/atlas-connections.png
 !docs/getting-started.md
 !docs/supported-agents.md
 !docs/privacy.md

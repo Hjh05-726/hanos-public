@@ -23,6 +23,8 @@ adapters/copilot/adapter.json
 adapters/cursor/SKILL.md.template
 adapters/cursor/adapter.json
 adapters/gemini-cli/adapter.json
+docs/assets/atlas-connections.png
+docs/assets/atlas-overview.png
 docs/assets/hanos-atlas.png
 docs/getting-started.md
 docs/portability-report.md

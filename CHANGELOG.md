@@ -4,6 +4,8 @@
 
 ## 0.1.0-preview.1 — 2026-09-17
 
+- Added actual desktop screenshots of the fictional atlas demo and its connection highlighting.
+
 - Added a versioned release manifest, clean-snapshot export and reproducible archive builder, CI checks, issue and PR templates, troubleshooting/uninstall guidance, and a support roadmap.
 - Added an opt-in six-step native Codex journey using fictional knowledge, separate from the nine shared behavioral cases.
 
