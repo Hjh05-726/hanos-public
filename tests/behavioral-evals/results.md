@@ -4,12 +4,13 @@ Checked: 2026-09-17. Candidate: `0.1.0-preview.1`.
 
 ## Current package verification
 
-The isolated public-only checkout passed **89/89** automated tests on macOS.
+The isolated public-only checkout passed **90/90** automated tests on macOS.
 Coverage includes installation and upgrades, release and privacy boundaries,
 HTML interactions and graph layout, deterministic archives, and native-evaluator
 checks for preserving history and terminating a timed-out process group.
-These are local results. The configured Linux/macOS CI matrix has not yet run on
-the hosting service; its workflow passed local actionlint 1.7.12 validation.
+These are local results. The configured Linux/macOS CI matrix reports each
+commit in [GitHub Actions](https://github.com/Hjh05-726/hanos-public/actions/workflows/ci.yml).
+Its workflow also passed local actionlint 1.7.12 validation.
 
 ## Current native Codex journey
 

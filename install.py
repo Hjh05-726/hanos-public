@@ -229,7 +229,18 @@ def paths_overlap(first: Path, second: Path) -> bool:
 
 def safe_resolve(path: Path, label: str, *, strict: bool = False) -> Path:
     try:
-        return path.expanduser().resolve(strict=strict)
+        resolved = path.expanduser().resolve(strict=strict)
+        if not strict:
+            # Python 3.13 non-strict resolution suppresses symlink-loop errors.
+            # Allow missing installation targets, but inspect their ancestors
+            # with stat(), which still reports loops and inaccessible paths.
+            for candidate in (resolved, *resolved.parents):
+                try:
+                    candidate.stat()
+                    break
+                except FileNotFoundError:
+                    continue
+        return resolved
     except (OSError, RuntimeError, ValueError) as error:
         raise InstallerError(f"{label} cannot be resolved: {path}: {error}") from error
 
@@ -262,21 +273,21 @@ def validate_display_name(value: str) -> str:
 
 
 def preflight_file_target(path: Path, home: Path, label: str) -> None:
+    if not is_within(safe_resolve(path.parent, f"{label} parent"), home):
+        raise InstallerError(f"{label} escapes the install home: {path}")
     if path.is_symlink():
         raise InstallerError(f"{label} must not be a symbolic link: {path}")
     if path.exists() and not path.is_file():
         raise InstallerError(f"{label} must be a regular file: {path}")
-    if not is_within(safe_resolve(path.parent, f"{label} parent"), home):
-        raise InstallerError(f"{label} escapes the install home: {path}")
 
 
 def preflight_managed_directory(destination: Path, home: Path) -> None:
-    if destination.is_symlink():
-        raise InstallerError(f"managed directory must not be a symbolic link: {destination}")
     if not is_within(
         safe_resolve(destination.parent, "managed directory parent"), home
     ):
         raise InstallerError(f"managed directory escapes the install home: {destination}")
+    if destination.is_symlink():
+        raise InstallerError(f"managed directory must not be a symbolic link: {destination}")
     if destination.exists():
         validate_managed_directory(destination)
     backup = destination.with_name(f".{destination.name}.previous")

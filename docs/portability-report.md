@@ -1,9 +1,9 @@
 # Portability report
 
-Package verification: 2026-09-17, **89/89** public tests passed in an isolated
+Package verification: 2026-09-17, **90/90** public tests passed in an isolated
 public-only checkout on macOS. Codex completed the six-step fictional native
 journey with `codex-cli 0.154.0-alpha.6.2`. CI configuration passed actionlint;
-the hosted Linux/macOS matrix has not run yet.
+hosted Linux/macOS results are reported for each commit in [GitHub Actions](https://github.com/Hjh05-726/hanos-public/actions/workflows/ci.yml).
 
 ```text
 HANOS_PORTABILITY_RESULT=PARTIAL

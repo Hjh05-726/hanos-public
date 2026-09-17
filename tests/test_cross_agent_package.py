@@ -692,11 +692,37 @@ class CrossAgentPackageTests(unittest.TestCase):
                     )
                     self.assertNotEqual(completed.returncode, 0)
                     self.assertNotIn("Traceback", completed.stderr)
+                    if loop_kind in ("config", "agents"):
+                        self.assertFalse(knowledge.exists(), "preflight must reject before knowledge writes")
+                        self.assertFalse((home / ".config/hanos/config.json").exists())
                     self.assertTrue(
                         (home / f".{loop_kind.split('-')[0]}").is_symlink()
                         if loop_kind != "knowledge-control"
                         else (knowledge / ".hanos").is_symlink()
                     )
+
+    @unittest.skipUnless(os.name == "posix", "requires POSIX directory permissions")
+    def test_installer_rejects_inaccessible_parent_before_writes(self) -> None:
+        for directory in (".config", ".agents"):
+            with self.subTest(directory=directory), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                home, knowledge = root / "home", root / "knowledge"
+                blocked = home / directory
+                blocked.mkdir(parents=True)
+                blocked.chmod(0)
+                try:
+                    if os.access(blocked, os.X_OK):
+                        self.skipTest("current user bypasses directory permissions")
+                    completed = run_installer(
+                        "--agent", "codex", "--home", str(home),
+                        "--knowledge-home", str(knowledge), "--display-name", "Atlas", "--yes",
+                    )
+                    self.assertEqual(completed.returncode, 2)
+                    self.assertNotIn("Traceback", completed.stderr)
+                    self.assertFalse(knowledge.exists())
+                finally:
+                    blocked.chmod(0o700)
+                self.assertFalse((home / ".config/hanos/config.json").exists())
 
     def test_installer_structures_unknown_user_path_expansion(self) -> None:
         unknown = "~hanos-user-that-does-not-exist-92741/path"

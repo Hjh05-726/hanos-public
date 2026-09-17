@@ -4,6 +4,7 @@
 
 ## 0.1.0-preview.1 — 2026-09-17
 
+- Fixed fail-closed installer preflight for symbolic-link loops on Python 3.13.
 - Added a short fictional-demo screencast as an inline GIF preview and a compact MP4.
 - Added actual desktop screenshots of the fictional atlas demo and its connection highlighting.
 

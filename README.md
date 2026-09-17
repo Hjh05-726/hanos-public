@@ -1,5 +1,7 @@
 # HanOS
 
+[版本下载](https://github.com/Hjh05-726/hanos-public/releases) · [CI 检查](https://github.com/Hjh05-726/hanos-public/actions/workflows/ci.yml) · [反馈问题](https://github.com/Hjh05-726/hanos-public/issues)
+
 ![HanOS 知识星图概念插画：零散的笔记在深蓝夜空中连接成横向展开的星座](docs/assets/hanos-atlas.png)
 
 <sub>知识星图概念插画，由 AI 生成；不含真实笔记，并非产品界面截图。</sub>
@@ -66,7 +68,7 @@ flowchart LR
 
 ### 2. 安装到你的客户端
 
-下载本仓库源码压缩包并解压，或克隆你要使用的发布版本。在包含 `install.py` 的目录打开终端，选择**一条**对应命令：
+从[版本页面](https://github.com/Hjh05-726/hanos-public/releases)下载 `hanos-版本号.zip` 并解压，或克隆你要使用的发布版本。在包含 `install.py` 的目录打开终端，选择**一条**对应命令：
 
 ```bash
 # OpenAI Codex
@@ -194,7 +196,7 @@ python3 scripts/demo.py --output /absolute/path/to/new-hanos-demo
 | GitHub Copilot / VS Code | 通过 | 未完成验证 |
 | Gemini CLI | 通过 | 未完成验证 |
 
-当前是源码公开预览阶段。独立公开副本的自动化检查覆盖安装、发布边界、HTML 和星图布局；这些结果不代表全部客户端、操作系统和模型组合已经验证。当前 Codex 原生证据日期为 2026-09-17；公开副本在 macOS 上通过 89 项测试。远端 CI 尚未运行，完整证据见下方评测文档。
+当前是源码公开预览阶段。独立公开副本的自动化检查覆盖安装、发布边界、HTML 和星图布局；这些结果不代表全部客户端、操作系统和模型组合已经验证。当前 Codex 原生证据日期为 2026-09-17；公开副本在 macOS 上通过 90 项测试。远端 CI 的实际结果以[对应提交的检查记录](https://github.com/Hjh05-726/hanos-public/actions/workflows/ci.yml)为准，完整证据见下方评测文档。
 
 详见 [客户端说明](docs/supported-agents.md)、[可移植性报告](docs/portability-report.md)和[评测记录](tests/behavioral-evals/results.md)。
 
