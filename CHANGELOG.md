@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 0.1.0-preview.2 — 2026-09-18
+
+- Separated knowledge-workflow activation, HTML viewing and explicit Obsidian requests; activation no longer implicitly launches a note application.
+- Reworded first-use naming as naming the knowledge assistant, using the agreed conversational introduction.
+- Fixed search to include full Markdown content, subheadings, tags and repository information; added result counts, empty-state feedback, clickable excerpts and matching graph emphasis while preserving node positions and reader focus.
+- Preserved user/assistant attribution through capture, organization and recall; an existing note no longer constitutes user confirmation of assistant suggestions.
+- Added four activation-routing cases and search runtime regressions; corrected shared-case coverage documentation.
+- Upgrade using the installer with the existing knowledge home and display name, reload the client, then regenerate HTML to use the updated search. This release does not migrate or rewrite existing notes; older claims need their original evidence checked when revisited.
+- Preview limits remain: other clients lack equivalent native verification, and model instruction changes cannot guarantee every future response.
+
 ## 0.1.0-preview.1 — 2026-09-17
 
 - Fixed fail-closed installer preflight for symbolic-link loops on Python 3.13.

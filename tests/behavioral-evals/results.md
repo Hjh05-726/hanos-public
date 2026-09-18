@@ -1,7 +1,18 @@
 # Behavioral evaluation results
 
-Latest routing check: 2026-09-18, local unreleased update. The package and six-step
+Latest routing check: 2026-09-18, included in `0.1.0-preview.2`. The package and six-step
 journey results below remain the dated `0.1.0-preview.1` evidence from 2026-09-17.
+
+## Search and provenance regression, 2026-09-18
+
+The generated HTML script passed Node DOM checks for full-text, subheading and
+tag matches, result counts, empty results, opening notes, focus restoration and
+clearing graph emphasis. The user subsequently accepted the repaired local HTML.
+Two separate isolated Codex sessions organized fictional notes and then recalled
+them: assistant recommendations remained unconfirmed, older unattributed records
+remained uncertain, and the recall left knowledge files unchanged. These samples
+do not establish universal model behavior or cross-client parity. Raw traces and
+local test artifacts remain outside the public package.
 
 ## Activation routing regression, 2026-09-18
 

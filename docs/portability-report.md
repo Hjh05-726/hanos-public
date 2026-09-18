@@ -55,7 +55,7 @@ value is superseded. The final evaluator-only timeout cleanup patch was verified
 separately with process-group regressions; the installed Skill and generator were
 unchanged. Traces stay local, outside the release package.
 
-The nine shared case definitions pass schema and coverage checks, but their
+The thirteen shared case definitions pass schema and coverage checks, but their
 complete automated execution is `NOT_RUN`. Full evidence is in
 [the evaluation results](../tests/behavioral-evals/results.md); limitations are
 maintained in [supported-agents.md](supported-agents.md). Static package success
