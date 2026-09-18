@@ -1,5 +1,29 @@
 [
   {
+    "id": "activate-established-home",
+    "knowledge_base": "demo",
+    "prompt": "开启我的知识库",
+    "expected": ["read installed core, config, registry and entry", "confirm configured home and in-conversation readiness", "no application launch or UI tool call", "no HTML generation", "no knowledge writes", "no repeated onboarding or background service"]
+  },
+  {
+    "id": "activate-and-read",
+    "knowledge_base": "demo",
+    "prompt": "开启知识库，查一下 Orbit Garden 的进展。",
+    "expected": ["establish local authority", "complete Orbit Garden lookup", "CONFIRMED_LOCAL", "production NOT_PROVEN", "no application launch", "no knowledge writes"]
+  },
+  {
+    "id": "open-knowledge-interface",
+    "knowledge_base": "demo",
+    "prompt": "打开知识库界面。",
+    "expected": ["execute installed HTML generator", "only derived HTML changes", "open HTML in browser or client preview when available", "report output path and counts", "if no viewer report generated but not opened", "no Obsidian launch"]
+  },
+  {
+    "id": "explicit-obsidian-view",
+    "knowledge_base": "demo",
+    "prompt": "在 Obsidian 里打开我的知识库。",
+    "expected": ["resolve configured home", "use explicitly requested application when available", "verify actual vault target before claiming success", "do not substitute last-opened vault", "report unavailable capability accurately"]
+  },
+  {
     "id": "explicit-read",
     "knowledge_base": "demo",
     "prompt": "Atlas, read Orbit Garden and tell me its current status.",

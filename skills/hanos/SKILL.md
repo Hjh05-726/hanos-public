@@ -47,6 +47,9 @@ If the required config path source, config, registry, or selected path is missin
 
 ## 3. Route the operation
 
+- Activation, a visual view, and opening an external application are distinct requests. For “开启我的知识库”, “启用 HanOS”, or a bare “打开知识库” without a visual or application request, establish local authority and make the knowledge workflow ready in the current conversation. In an established home, briefly confirm the resolved home and readiness; do not restart onboarding, generate a view, launch an application, or imply a persistent background mode. Continue any concrete follow-on task. For a confirmed fresh home, follow the onboarding route below.
+- For “打开知识库界面”, “看看知识图谱”, or another explicit visual request, use the HTML-view route below and open the resulting local HTML in an available browser or client preview. If no viewer is available, provide the exact local file link and state that it was generated but not opened; do not substitute an external note-taking application.
+- Open Obsidian or another external knowledge application only when the user explicitly requests that application. Resolve the configured knowledge home first and verify the application's actual target before claiming success; its last-opened vault is not an authority. Never infer an application choice from Markdown, WikiLinks, a `.obsidian` directory, historical notes, or available Computer Use tools.
 - First-use setup, continuing an introduction, or changing personal preferences: read [references/onboarding.md](references/onboarding.md). A first standalone invocation in a confirmed fresh knowledge home starts one question at a time. A missing onboarding marker in an established home does not make the user new. Complete concrete capture, lookup, or other work before offering setup; never require a completed profile to use HanOS.
 - Repository selection or explicit repository creation: read [references/repository-protocol.md](references/repository-protocol.md).
 - Lookup, analysis, search, audit, handoff, or task context: read [references/read-protocol.md](references/read-protocol.md).
@@ -94,7 +97,7 @@ does not authorize changes to source notes or other external files.
 - Read only the narrowest relevant indexes and notes; do not scan the whole home for unrelated tasks.
 - Extract only durable portions of the user's message, and label each item as fact, preference, feeling, decision, method, hypothesis, plan, diary, or history.
 - Update an existing authority before creating a note.
-- Preserve superseded history and label verified facts, hypotheses, plans, and historical records distinctly.
+- Preserve superseded history and label verified facts, hypotheses, plans, and historical records distinctly. Preserve user/assistant attribution during capture, organization, and recall; follow [provenance rules](references/write-protocol.md#preserve-provenance).
 - Never store credentials, tokens, private conversations, or unrelated personal material.
 - Re-resolve the target immediately before a write, then re-read changed files and affected indexes.
 - Report what was read or changed and what the evidence does and does not prove.

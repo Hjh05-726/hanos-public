@@ -186,7 +186,7 @@ class HtmlDashboardTests(unittest.TestCase):
             structure.feed(rendered)
             self.assertEqual(structure.contained, {"note-reader", "graph-fullscreen"})
             self.assertIn('pointerenter', rendered)
-            self.assertIn("function openNote(node)", rendered)
+            self.assertIn("function openNote(node, returnFocus = null)", rendered)
             self.assertIn('pointerInViewBox', rendered)
             self.assertIn('const worldX = (anchorX - offsetX) / scale', rendered)
             self.assertNotIn('function stepMotion(now)', rendered)
@@ -269,9 +269,19 @@ for (const match of html.matchAll(/<([a-z][a-z0-9]*)\b([^>]*\bid="([^"]+)"[^>]*)
 elements.get('hanos-overview-data').textContent = JSON.stringify(data);
 const document = new Element(); document.body = new Element();
 document.createElementNS = (_, name) => new Element(name);
-const pageBackground = ['page-header','search','overview-stats','repositories','page-footer'].map(id => elements.get(id));
+document.createElement = name => new Element(name);
+const pageBackground = ['page-header','search-panel','overview-stats','repositories','page-footer'].map(id => elements.get(id));
 const graphBackground = ['graph-header','graph-stage','graph-footer'].map(id => elements.get(id));
-document.querySelectorAll = selector => selector.startsWith('main > header,') ? pageBackground : [];
+const cards = [...html.matchAll(/<article class="repository" data-search="([^"]*)">([\s\S]*?)<\/article>/g)].map(match => {
+  const card = new Element(); card.dataset.search = match[1];
+  for (const note of match[2].matchAll(/<li class="note"[^>]*data-node-id="([^"]*)"/g)) {
+    const element = new Element(); element.classList.add('note'); element.dataset.nodeId = note[1]; card.appendChild(element);
+  }
+  return card;
+});
+document.querySelectorAll = selector => selector.startsWith('main > header,') ? pageBackground : selector === '.repository' ? cards : [];
+elements.get('search').parentElement = elements.get('search-panel');
+elements.get('search-results').parentElement = elements.get('search-panel');
 document.exitFullscreen = () => { throw new Error('Native fullscreen must not be used'); };
 for (const id of ['graph-zoom-in','graph-zoom-out','graph-readable','graph-fit','graph-reset','graph-fullscreen']) elements.get(id).parentElement = elements.get('graph-header');
 elements.get('graph-motion').parentElement = elements.get('graph-footer');
@@ -384,7 +394,7 @@ nodes[noteIndex].emit('click', {target:nodes[noteIndex].children[3]});
 assert(elements.get('note-reader').classList.contains('visible'));
 assert.equal(elements.get('reader-title').textContent, note.label);
 assert(elements.get('reader-content').innerHTML.length > 0);
-assert(elements.get('graph-stage').inert && elements.get('search').inert);
+assert(elements.get('graph-stage').inert && elements.get('search-panel').inert);
 assert.equal(document.activeElement, elements.get('reader-close'));
 let preventedTab = false;
 document.emit('keydown', {key: 'Tab', shiftKey: true, preventDefault() { preventedTab = true; }});
@@ -392,7 +402,7 @@ assert(preventedTab && document.activeElement === elements.get('reader-close'));
 elements.get('reader-close').emit('click');
 assert(!elements.get('note-reader').classList.contains('visible'));
 assert.equal(document.activeElement, nodes[noteIndex]);
-assert(!elements.get('graph-stage').inert && !elements.get('search').inert);
+assert(!elements.get('graph-stage').inert && !elements.get('search-panel').inert);
 nodes[noteIndex].emit('focus'); assert.equal(nodes[noteIndex].attrs.role, 'button');
 assert.equal(nodes[noteIndex].attrs.tabindex, '0');
 nodes[noteIndex].emit('keydown', {key: 'Enter'});
@@ -500,12 +510,49 @@ fullscreenButton.emit('click');
 elements.get('graph-zoom-in').emit('click');
 assert(vm.runInContext('scale', context) >= maximumScale, 'Zooming in after enlarging the viewport must never zoom out');
 verifyAllTitles();
+fullscreenButton.emit('click');
+const searchInput = elements.get('search');
+const setQuery = value => { searchInput.value = value; searchInput.emit('input'); };
+for (const query of ['访谈到原型五步法', 'flow-k7n4', '网络中断', 'AI工作流']) {
+  setQuery(query);
+  assert.equal(elements.get('search-status').textContent, '找到 1 篇笔记');
+  assert.equal(elements.get('search-results').children.length, 1);
+  assert.equal(cards.flatMap(card => card.children).filter(note => !note.classList.contains('hidden')).length, 1);
+  const result = elements.get('search-results').children[0];
+  assert(result.textContent.includes(query === 'flow-k7n4' ? 'FLOW-K7N4' : query));
+  const target = nodes.find(node => node.__nodeId === 'note:global/search-fixture.md');
+  assert(target.classList.contains('search-match'));
+  assert(nodes.some(node => node.classList.contains('search-muted')));
+  target.emit('pointerenter'); target.emit('pointerleave');
+  assert(target.classList.contains('search-match'));
+  result.focus(); result.emit('click');
+  assert.equal(elements.get('note-reader').hidden, false);
+  assert(elements.get('reader-content').innerHTML.includes('访谈到原型五步法'));
+  elements.get('reader-close').emit('click');
+  assert.equal(document.activeElement, result, 'Closing a search result restores focus to that result');
+}
+setQuery('Global');
+// Both global notes plus the demo note linking to global.
+assert.equal(elements.get('search-status').textContent, '找到 3 篇笔记');
+assert.equal(elements.get('search-results').children.length, 3);
+setQuery('不存在的词-XYZ');
+assert.equal(elements.get('search-status').textContent, '没有找到匹配的笔记，请换个关键词');
+assert.equal(elements.get('search-results').children.length, 0);
+setQuery('   ');
+assert.equal(elements.get('search-results').hidden, true);
+assert(cards.every(card => !card.classList.contains('hidden') && card.children.every(note => !note.classList.contains('hidden'))));
+assert(nodes.every(node => !node.classList.contains('search-match') && !node.classList.contains('search-muted')));
+verifyAllTitles();
 console.log(JSON.stringify({nodes:nodes.length, permanentTitles:titles.length}));
 """
         with tempfile.TemporaryDirectory() as directory:
             temporary = Path(directory)
             root, config = self.make_knowledge_home(temporary)
             output = temporary / "runtime.html"
+            (root / "global/search-fixture.md").write_text(
+                "# Global knowledge template\n\nGeneric preview.\n\n## 访谈到原型五步法\n\n"
+                "FLOW-K7N4：检查网络中断。 #AI工作流\n", encoding="utf-8",
+            )
             for size in (0, 60):
                 with self.subTest(extra_notes=size):
                     for index in range(size):

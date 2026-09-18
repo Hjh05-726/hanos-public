@@ -701,7 +701,7 @@ def render_html(data: dict[str, Any]) -> str:
     for repository in repositories:
         notes = repository["notes"]
         note_markup = "".join(
-            "<li class=\"note\" data-search=\"{search}\">"
+            "<li class=\"note\" data-search=\"{search}\" data-node-id=\"note:{path}\">"
             "<strong>{title}</strong>"
             "<span class=\"path\">{path}</span>"
             "<p>{preview}</p>"
@@ -766,6 +766,14 @@ def render_html(data: dict[str, Any]) -> str:
     .search {{ display:grid; grid-template-columns:max-content minmax(0,440px); align-items:center; gap:16px; margin:28px 0 20px; }}
     .search label {{ color:var(--muted); font-size:12px; letter-spacing:.08em; }}
     input {{ width:100%; min-width:0; border:1px solid var(--line); border-radius:10px; padding:11px 15px; font:inherit; font-size:13px; color:var(--ink); background:#0d1929; transition:border-color .18s ease,box-shadow .18s ease; }}
+    #search-status, #search-results {{ grid-column:1 / -1; }}
+    #search-status {{ margin:0; color:var(--muted); font-size:13px; }}
+    #search-results {{ max-height:240px; overflow:auto; }}
+    .search-result {{ display:block; width:100%; text-align:left; white-space:normal; margin:6px 0; overflow-wrap:anywhere; }}
+    .search-result span {{ display:block; color:var(--muted); font-size:12px; margin-top:5px; }}
+    .graph-node.search-muted, .graph-edge.search-muted {{ opacity:.12; }}
+    .graph-node.search-match text {{ fill:#fff; }}
+    .graph-node.search-match .node-star {{ opacity:1; filter:drop-shadow(0 0 5px #8ed7ee); }}
     input::placeholder {{ color:var(--muted); }}
     input:focus {{ border-color:var(--accent); box-shadow:0 0 0 4px #8ed7ee0d; }}
     input:focus-visible,button:focus-visible,a:focus-visible {{ outline:2px solid var(--accent); outline-offset:3px; }}
@@ -884,7 +892,7 @@ def render_html(data: dict[str, Any]) -> str:
 <body data-theme="midnight-atlas">
   <main>
     <header id="page-header"><div><div class="brand"><span class="brand-mark" aria-hidden="true">✦</span><span>HANOS / KNOWLEDGE ATLAS</span></div><h1>知识库总览</h1><p class="lede">让散落的思考，连成自己的星空。</p></div><p class="meta"><strong>{_esc(data["repository_count"])} 个分类 · {_esc(data["note_count"])} 篇笔记</strong>生成于 {_esc(data["generated_at"])}</p></header>
-    <div class="search"><label for="search">搜索笔记</label><input id="search" type="search" placeholder="搜索笔记、分类或内容…" aria-label="搜索笔记、分类或内容"></div>
+    <div class="search" id="search-panel"><label for="search">搜索笔记</label><input id="search" type="search" placeholder="搜索笔记、分类或内容…" aria-label="搜索笔记、分类或内容" aria-describedby="search-status"><p id="search-status" role="status" aria-live="polite"></p><div id="search-results" hidden="hidden"></div></div>
     <section class="graph-panel" id="graph-panel" aria-labelledby="graph-title">
       <div class="graph-canvas" id="graph-canvas">
         <div class="graph-header" id="graph-header"><div><h2 id="graph-title">星空知识图谱</h2><p>悬停查看关联，点击阅读笔记。</p></div><div class="graph-actions"><button class="zoom-button" id="graph-zoom-out" type="button" aria-label="缩小图谱">−</button><button class="zoom-button" id="graph-zoom-in" type="button" aria-label="放大图谱">+</button><button id="graph-readable" type="button">清晰查看</button><button id="graph-fit" type="button">回到全图</button><button id="graph-fullscreen" type="button" aria-expanded="false" aria-controls="graph-canvas">全屏查看</button><button id="graph-reset" type="button">清除选择</button></div></div>
@@ -905,17 +913,6 @@ def render_html(data: dict[str, Any]) -> str:
   <script>
     const search = document.querySelector('#search');
     const cards = [...document.querySelectorAll('.repository')];
-    search.addEventListener('input', () => {{
-      const query = search.value.trim().toLocaleLowerCase();
-      cards.forEach(card => {{
-        const matchesCard = (card.dataset.search || '').toLocaleLowerCase().includes(query);
-        const notes = [...card.querySelectorAll('.note')];
-        let visibleNotes = 0;
-        notes.forEach(note => {{ const visible = !query || matchesCard || (note.dataset.search || '').toLocaleLowerCase().includes(query); note.classList.toggle('hidden', !visible); if (visible) visibleNotes += 1; }});
-        card.classList.toggle('hidden', Boolean(query) && !matchesCard && visibleNotes === 0);
-      }});
-    }});
-
     const graphData = JSON.parse(document.querySelector('#hanos-overview-data').textContent);
     const graphSvg = document.querySelector('#graph');
     const viewport = document.querySelector('#graph-viewport');
@@ -1017,6 +1014,50 @@ def render_html(data: dict[str, Any]) -> str:
       group.__nodeId = node.id;
       nodeElements.push({{ node, point, group, label, radius }});
     }});
+    const searchStatus = document.querySelector('#search-status');
+    const searchResults = document.querySelector('#search-results');
+    const repositoryTerms = new Map();
+    graphData.repositories.forEach(repository => repository.notes.forEach(note =>
+      repositoryTerms.set(`note:${{note.path}}`, `${{repository.name}} ${{repository.type}} ${{repository.path}}`)));
+    const searchIndex = nodeElements.filter(entry => entry.node.kind === 'note').map(entry => ({{
+      ...entry,
+      terms: [entry.node.label, entry.node.path, entry.node.content, ...(entry.node.tags || []), repositoryTerms.get(entry.node.id)].join(' ').toLocaleLowerCase()
+    }}));
+    search.addEventListener('input', () => {{
+      const query = search.value.trim().toLocaleLowerCase();
+      const matches = query ? searchIndex.filter(entry => entry.terms.includes(query)) : [];
+      const matchedIds = new Set(matches.map(entry => entry.node.id));
+      searchStatus.textContent = !query ? '' : matches.length ? `找到 ${{matches.length}} 篇笔记` : '没有找到匹配的笔记，请换个关键词';
+      searchResults.textContent = '';
+      searchResults.hidden = !query || matches.length === 0;
+      matches.forEach(({{node}}) => {{
+        const button = document.createElement('button');
+        button.setAttribute('type', 'button'); button.setAttribute('class', 'search-result');
+        const body = String(node.content || '');
+        const position = body.toLocaleLowerCase().indexOf(query);
+        const start = Math.max(0, position - 35);
+        const excerpt = position < 0 ? node.path : `${{start ? '…' : ''}}${{body.slice(start, Math.max(start + 150, position + query.length))}}`;
+        button.textContent = node.label;
+        const snippet = document.createElement('span'); snippet.textContent = excerpt; button.appendChild(snippet);
+        button.addEventListener('click', () => {{ focusGraphNode(node.id); openNote(node, button); }});
+        searchResults.appendChild(button);
+      }});
+      cards.forEach(card => {{
+        let visibleNotes = 0;
+        card.querySelectorAll('.note').forEach(note => {{
+          const visible = !query || matchedIds.has(note.dataset.nodeId);
+          note.classList.toggle('hidden', !visible); if (visible) visibleNotes += 1;
+        }});
+        const matchesEmptyCard = (card.dataset.search || '').toLocaleLowerCase().includes(query);
+        card.classList.toggle('hidden', Boolean(query) && visibleNotes === 0 && !matchesEmptyCard);
+      }});
+      clearGraphFocus();
+      nodeElements.forEach(({{node, group}}) => {{
+        group.classList.toggle('search-match', Boolean(query) && matchedIds.has(node.id));
+        group.classList.toggle('search-muted', Boolean(query) && !matchedIds.has(node.id));
+      }});
+      edgeElements.forEach(({{line, source, target}}) => line.classList.toggle('search-muted', Boolean(query) && !matchedIds.has(source) && !matchedIds.has(target)));
+    }});
     function focusGraphNode(id) {{
       const related = new Set([id]); graphData.graph.edges.forEach(edge => {{ if (edge.source === id) related.add(edge.target); if (edge.target === id) related.add(edge.source); }});
       nodeLayer.querySelectorAll('.graph-node').forEach(node => {{ node.classList.toggle('muted', !related.has(node.__nodeId)); node.classList.toggle('related', related.has(node.__nodeId)); node.classList.toggle('focused', node.__nodeId === id); }});
@@ -1043,8 +1084,8 @@ def render_html(data: dict[str, Any]) -> str:
       }});
       closeList(); return output || '<p>这篇笔记暂时没有可显示的内容。</p>';
     }};
-    function openNote(node) {{
-      readerReturnFocus = nodeElements.find(entry => entry.node.id === node.id)?.group || null;
+    function openNote(node, returnFocus = null) {{
+      readerReturnFocus = returnFocus || nodeElements.find(entry => entry.node.id === node.id)?.group || null;
       readerTitle.textContent = node.label; readerPath.textContent = `所在位置：${{node.path}} · ${{node.repository}}`;
       readerContent.innerHTML = renderNote(node.content); readerEmpty.hidden = true; readerBody.hidden = false;
       reader.hidden = false;

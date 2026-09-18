@@ -98,11 +98,14 @@ never distribute your installed config as part of the source package.
 ## First use
 
 Say “开始我的知识库” to begin a short introduction. HanOS asks one question at
-a time: the knowledge-base name, how to address you, your current context,
+a time: what you want to call your knowledge assistant, how to address you, your current context,
 what you care about, and how you prefer it to respond. It then explains everyday
 use and helps you save a first real record. You can skip questions, say “先用起来”,
 or resume later with “继续上次的引导”. Existing answers are reused, and upgrading
-an established knowledge home does not restart the questionnaire.
+an established knowledge home does not restart the questionnaire. The naming
+invitation is “我是你的知识库助手，你可以给我取一个名字，以后有需要喊我就行。你想叫我什么？”
+The chosen name becomes HanOS's configured display name; addressing it by that
+name in conversation invokes the knowledge workflow.
 
 Answers and progress stay in your registered local global knowledge authority;
 the public Skill contains only the flow. A new name is applied through the

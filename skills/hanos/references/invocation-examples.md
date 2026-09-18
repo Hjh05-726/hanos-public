@@ -5,6 +5,17 @@ knowledge workflow is useful. The configured display name and a client command
 such as `$hanos` or `/hanos` remain explicit ways to force that workflow, but
 they are not required for ordinary capture.
 
+## Activation and viewing
+
+Apply the operation routes in `SKILL.md`; activating the workflow does not choose a viewing application.
+
+| User message | Expected behavior |
+|---|---|
+| `开启我的知识库。` / `启用 HanOS。` / `打开知识库。` | Resolve the configured home, registry and entry. For an established home, confirm readiness in this conversation; no application launch, HTML generation, or repeated onboarding. For a confirmed fresh home, follow onboarding. |
+| `开启知识库，查一下 Orbit Garden 的进展。` | Establish local authority and complete the requested lookup; do not stop after announcing readiness or open a viewer. |
+| `打开知识库界面。` / `看看知识图谱。` | Generate the local HTML view and open it in an available browser or client preview; otherwise return its exact file link and explain that opening was unavailable. |
+| `在 Obsidian 里打开我的知识库。` | Open the explicitly requested application and verify it targets the configured home, not a remembered or last-opened vault. |
+
 ## First-use conversation
 
 | User message | Expected behavior |

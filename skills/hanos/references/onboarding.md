@@ -34,11 +34,16 @@ Introduce the purpose briefly, then ask only the next unanswered question:
 
 | Step | Suggested question | What the answer establishes |
 |---|---|---|
-| name | 你想给这个知识库起什么名字？ | The user's chosen display name. If unsure, offer to keep the configured name. Apply a new name through the installer below. |
+| name | 我是你的知识库助手，你可以给我取一个名字，以后有需要喊我就行。你想叫我什么？ | The user's chosen name for their knowledge assistant, stored as the configured display name. If unsure, offer to keep the configured name. Apply a new name through the installer below. |
 | address | 我以后怎么称呼你？昵称就可以。 | Preferred form of address. |
 | context | 你愿意怎样介绍现在的自己？可以简单说说你正在做什么、处在人生的哪个阶段，或者平时感兴趣的事。 | Self-described current stage, roles, and interests. |
 | focus | 最近有什么事，是你特别在意、想推进，或者想慢慢弄清楚的？ | Current concerns or goals, dated as current context. |
 | response | 当你分享想法或经历时，你希望我怎样回应你？ | Response preferences. If helpful, suggest 简洁直给、一起深入分析、先理解感受再给建议, or 根据内容判断. |
+
+Frame naming as how the user addresses their knowledge assistant, not as naming
+a knowledge-base container. After the name is applied, using it as a direct
+address in conversation invokes HanOS under the core's existing trigger rules;
+this does not imply an always-listening voice wake word.
 
 After each answer, acknowledge one relevant point in a short, specific sentence.
 Do not turn each reply into a psychological analysis or routine praise.

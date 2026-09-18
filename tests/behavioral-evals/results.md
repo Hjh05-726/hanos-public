@@ -1,6 +1,35 @@
 # Behavioral evaluation results
 
-Checked: 2026-09-17. Candidate: `0.1.0-preview.1`.
+Latest routing check: 2026-09-18, local unreleased update. The package and six-step
+journey results below remain the dated `0.1.0-preview.1` evidence from 2026-09-17.
+
+## Activation routing regression, 2026-09-18
+
+Four separate native Codex runs used freshly installed copies of the updated
+core and entirely fictional knowledge. The prompts are the four routing cases
+in `cases.json`. Each run was limited to its own workspace and had no desktop
+or browser connection. Actual tool traces, final answers and before/after file
+hashes were checked, including a successful read of the installed core.
+
+| Request | Result | Observed behavior |
+|---|---|---|
+| `开启我的知识库` | PASS | Read-only shell calls; confirmed the configured home and readiness in the current conversation; no HTML or knowledge changes |
+| `开启知识库，查一下 Orbit Garden 的进展。` | PASS | Completed the follow-on lookup, reporting CONFIRMED_LOCAL and NOT_PROVEN; no knowledge changes |
+| `打开知识库界面。` | PASS | Executed the installed generator; only the derived HTML changed; reported 2 repositories, 3 notes, 0 connections and 0 unresolved links; accurately stated that opening was unavailable |
+| `在 Obsidian 里打开我的知识库。` | PASS | Resolved the configured home and retained the explicit application intent; accurately reported the unavailable desktop capability; no file changes |
+
+No run attempted a UI tool call or application-launch command. These isolated
+runs verify routing and unavailable-viewer handling; they do not prove native
+desktop opening, last-opened-vault switching, or behavior across other clients.
+The existing six-step journey was not rerun for this instruction-only change.
+All **41/41** package checks passed, including the updated 13-case catalog.
+Independent review of this change found no actionable issues.
+
+The generic skill-creator validator rejects the pre-existing `compatibility`
+frontmatter field in both the baseline and updated core. That validator result
+is not a new regression; the project's package checks pass. Native runs also
+reported shortened skill descriptions at startup, then read the complete core
+and completed successfully. Raw traces remain private and outside this package.
 
 ## Current package verification
 
@@ -55,8 +84,9 @@ your own evidence. The native Codex runner currently requires macOS or Linux.
 
 `AUTOMATED_SHARED_CASE_EXECUTION=NOT_RUN`
 
-All nine shared case definitions pass schema and required-coverage checks. The
-six-step journey is separate: it does not execute all nine cases or establish
+All thirteen shared case definitions pass schema and required-coverage checks.
+The four routing runs above and the historical six-step journey are separate:
+they do not execute the entire shared catalog or establish
 cross-client parity. Portability remains `PARTIAL`. Other client versions,
 operating systems and models require separate native evidence.
 

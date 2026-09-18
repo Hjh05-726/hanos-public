@@ -7,6 +7,7 @@ Use this protocol for lookup, analysis, search, audit, handoff, and task-context
 2. Resolve and validate the repository registry before selecting one scope.
 3. Read `00_Agent_Entry.md`, then the narrowest relevant index and notes.
 4. Separate document-backed current knowledge, historical records, hypotheses or plans, and claims requiring live external verification.
+   Preserve each item's attribution using [write-protocol.md#preserve-provenance](write-protocol.md#preserve-provenance): a note supports “recorded”, not automatically “you confirmed”. Apply this also to analyses and handoffs without changing the source note.
 5. For a pure lookup, answer without writing. When the message also contains a
    clear, low-risk durable candidate, pass the smallest candidate to the write
    protocol; a useful conclusion, conflict, or stale note alone is not enough.

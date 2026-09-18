@@ -25,6 +25,24 @@ statement as labelled history, and keep the correction's evidence status
 explicit. Ask only when authority or another required decision remains
 unresolved.
 
+## Preserve provenance
+
+At first capture, distinguish the user's statements from assistant additions.
+Keep added checkpoints, interpretations, or recommendations under **assistant
+suggestion — not user-confirmed**, if useful and authorized to retain; otherwise
+leave them out. Cite the originating message or source/date where available.
+
+Organization, paraphrasing, summaries, repeated recall, and presence in an
+existing note preserve that attribution; none constitutes user confirmation.
+Use **user-confirmed** only when an explicit user statement or approval supports
+that specific item, and retain its evidence. If an older note has no traceable
+attribution, say **recorded; source/confirmation unclear** and avoid upgrading it.
+A request to organize a note approves the organization, not all of its claims.
+
+Before finishing, compare each new or changed claim with its source. For example,
+“check five flows” remains the user's method; an added “record results against
+acceptance criteria” stays an assistant suggestion until explicitly adopted.
+
 ## Apply and verify
 
 - Update an existing authority before creating a note.

@@ -1,6 +1,8 @@
 # HTML knowledge-base view
 
-Use this mode only when the user explicitly asks to see, inspect, visualize, or generate an HTML overview of the knowledge home. It produces a local derived artifact; it does not create a second knowledge base and does not change Markdown notes.
+Use this mode when the user explicitly requests a visual knowledge-base interface, overview, or graph, including “打开知识库界面” and “看看知识图谱”; they need not say “HTML”. A bare activation request such as “开启我的知识库” follows the activation route in `SKILL.md` instead. This mode produces a local derived artifact; it does not create a second knowledge base and does not change Markdown notes.
+
+When the user asks to open or see the view, open the generated HTML in an available browser or client preview and verify it is displayed. If opening is unavailable, return the exact local file link and distinguish generation from opening. A generate-only request needs the artifact and counts, without an unsolicited application launch. Do not fall back to Obsidian or another note-taking application unless the user explicitly requests that application.
 
 ## Generate the view
 
@@ -51,7 +53,7 @@ existing file unchanged.
   adjustments; equal opposite movements restore scale, with the cursor anchored.
 - One summary card per active repository, with its type, relative path, and Markdown-note count.
 - One row per Markdown note, with its first heading, relative path, and a short first-paragraph preview.
-- Search across repository names, note titles, paths, and previews.
+- Search across repository names/types, note titles, paths, tags, and full Markdown content including subheadings. Show a match count or an empty-result message, clickable excerpts that open the note, and matching graph nodes with unrelated nodes subdued. Clearing the query restores the graph and note list; searching does not move nodes or change source notes.
 - An offline knowledge graph from `[[WikiLink]]`, relative Markdown links, and
   inline `#tags`, with click-to-focus, background-only pan, zoom buttons,
   fit-to-view, and fullscreen controls. Hovering a node highlights its directly

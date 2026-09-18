@@ -1423,6 +1423,10 @@ class CrossAgentPackageTests(unittest.TestCase):
         self.assertEqual(
             {case["id"] for case in cases},
             {
+                "activate-established-home",
+                "activate-and-read",
+                "open-knowledge-interface",
+                "explicit-obsidian-view",
                 "explicit-read",
                 "explicit-write",
                 "global-or-project",
