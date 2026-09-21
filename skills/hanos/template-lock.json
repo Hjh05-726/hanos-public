@@ -1,0 +1,9 @@
+{
+  "files": {
+    "scripts/generate_html.py": "2565d7ce6054c4f220cc24a02bcf81f519b83274c0f39a76edfa5a7515ec4979",
+    "scripts/star_layout.py": "c13af422a4fb8ada1498952977579c5bd2a9f84338833851ef8f7a5b07807129"
+  },
+  "schema_version": 1,
+  "template_id": "midnight-atlas",
+  "template_version": "1.0.0"
+}

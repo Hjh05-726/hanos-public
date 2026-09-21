@@ -22,13 +22,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
-if __package__:
-    from .star_layout import prepare_star_atlas
-else:
-    from star_layout import prepare_star_atlas
-
-
 GENERATED_FILENAME = "knowledge-overview.html"
+TEMPLATE_ID = "midnight-atlas"
+TEMPLATE_VERSION = "1.0.0"
+TEMPLATE_FILES = ("scripts/generate_html.py", "scripts/star_layout.py")
 MAX_PREVIEW_LENGTH = 240
 MARKDOWN_SUFFIXES = {".md", ".markdown", ".mdown", ".mkdn"}
 SKIP_DIRECTORY_NAMES = {".git", ".obsidian", ".hanos", "node_modules"}
@@ -37,6 +34,48 @@ SKIP_DIRECTORY_NAMES_FOLDED = {name.casefold() for name in SKIP_DIRECTORY_NAMES}
 
 class OverviewError(RuntimeError):
     """Raised when the configured knowledge authority cannot be read safely."""
+
+
+@dataclass(frozen=True)
+class LockedTemplate:
+    digest: str
+    layout_source: bytes
+
+
+def locked_template() -> LockedTemplate:
+    """Validate the shipped renderer bytes; never repair or accept drift here."""
+    core = Path(__file__).resolve().parent.parent
+    manifest = core / "template-lock.json"
+    try:
+        if manifest.is_symlink():
+            raise OverviewError("TEMPLATE_LOCK_INVALID: symbolic link")
+        raw = manifest.read_bytes()
+        lock = json.loads(raw)
+        if (
+            not isinstance(lock, dict)
+            or set(lock) != {"schema_version", "template_id", "template_version", "files"}
+            or lock["schema_version"] != 1
+            or lock["template_id"] != TEMPLATE_ID
+            or lock["template_version"] != TEMPLATE_VERSION
+            or not isinstance(lock["files"], dict)
+            or set(lock["files"]) != set(TEMPLATE_FILES)
+        ):
+            raise OverviewError("TEMPLATE_LOCK_INVALID: unsupported or incomplete contract")
+        sources: dict[str, bytes] = {}
+        for name in TEMPLATE_FILES:
+            path = core / name
+            if path.is_symlink() or path.parent.is_symlink():
+                raise OverviewError(f"TEMPLATE_DRIFT: symbolic link: {name}")
+            expected = lock["files"][name]
+            if not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{64}", expected):
+                raise OverviewError(f"TEMPLATE_LOCK_INVALID: invalid digest: {name}")
+            source = path.read_bytes()
+            if hashlib.sha256(source).hexdigest() != expected:
+                raise OverviewError(f"TEMPLATE_DRIFT: {name}; restore the approved package")
+            sources[name] = source
+    except (OSError, ValueError, UnicodeError) as error:
+        raise OverviewError(f"TEMPLATE_UNAVAILABLE: {error}") from error
+    return LockedTemplate(hashlib.sha256(raw).hexdigest(), sources["scripts/star_layout.py"])
 
 
 @dataclass(frozen=True)
@@ -480,7 +519,9 @@ def _constellation_positions(
     return {node_id: (round(x, 2), round(y, 2)) for node_id, (x, y) in points.items()}
 
 
-def _build_graph(repositories: list[Repository], root: Path) -> dict[str, Any]:
+def _build_graph(
+    repositories: list[Repository], root: Path, layout_source: bytes
+) -> dict[str, Any]:
     """Build note and tag nodes from the local Markdown corpus.
 
     Link resolution intentionally stays conservative: a link resolves when it
@@ -488,6 +529,12 @@ def _build_graph(repositories: list[Repository], root: Path) -> dict[str, Any]:
     remain visible as dashed nodes so broken knowledge connections are easy to
     find without inventing a second source of truth.
     """
+
+    # Execute exactly the source bytes checked by collect_overview. A normal
+    # import could reuse stale bytecode or an unrelated sys.modules entry.
+    layout_namespace: dict[str, Any] = {"__name__": "_hanos_locked_star_layout"}
+    exec(compile(layout_source, "star_layout.py", "exec"), layout_namespace)
+    prepare_star_atlas = layout_namespace["prepare_star_atlas"]
 
     notes = [note for repository in repositories for note in repository.notes]
     note_by_key: dict[str, list[Note]] = {}
@@ -609,6 +656,7 @@ def _build_graph(repositories: list[Repository], root: Path) -> dict[str, Any]:
 
 
 def collect_overview(root: Path) -> dict[str, Any]:
+    template = locked_template()
     repositories: list[Repository] = []
     seen_ids: set[str] = set()
     selectors: dict[str, str] = {}
@@ -678,7 +726,7 @@ def collect_overview(root: Path) -> dict[str, Any]:
             }
             for repository in repositories
         ],
-        "graph": _build_graph(repositories, root),
+        "graph": _build_graph(repositories, root, template.layout_source),
     }
 
 
@@ -695,6 +743,7 @@ def _esc(value: Any) -> str:
 
 
 def render_html(data: dict[str, Any]) -> str:
+    template_digest = locked_template().digest
     repositories = data["repositories"]
     graph = data["graph"]
     repository_cards: list[str] = []
@@ -745,6 +794,8 @@ def render_html(data: dict[str, Any]) -> str:
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="hanos-template" content="{TEMPLATE_ID}@{TEMPLATE_VERSION}">
+  <meta name="hanos-template-sha256" content="{template_digest}">
   <title>HanOS 知识库总览</title>
   <style>
     /* Shared offline theme: a midnight atlas, shipped inside every generated file.
@@ -1218,19 +1269,64 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--config", type=Path, help="Installed HanOS JSON config path")
     parser.add_argument("--knowledge-home", type=Path, help="Existing knowledge-home path")
-    parser.add_argument(
+    action = parser.add_mutually_exclusive_group()
+    action.add_argument(
         "--output",
         type=Path,
         help=f"HTML output path (default: <knowledge-home>/.hanos/{GENERATED_FILENAME})",
     )
+    action.add_argument("--verify-output", type=Path, help="Read-only: verify exact HTML against this template and current notes")
+    action.add_argument("--check-template", action="store_true", help="Check the pinned template without reading a knowledge home")
     return parser.parse_args(argv)
+
+
+def verify_output(output: Path, data: dict[str, Any]) -> None:
+    """Re-render trusted source data and compare every byte, including markup."""
+    actual = output.read_bytes()
+    try:
+        text = actual.decode("utf-8")
+        payloads = re.findall(
+            r'<script type="application/json" id="hanos-overview-data">(.*?)</script>',
+            text, flags=re.DOTALL,
+        )
+        if len(payloads) != 1:
+            raise ValueError("expected one source-data block")
+        recorded = json.loads(payloads[0])
+        generated_at = recorded.get("generated_at") if isinstance(recorded, dict) else None
+        if not isinstance(generated_at, str) or not re.fullmatch(
+            r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+00:00", generated_at
+        ):
+            raise ValueError("invalid generation timestamp")
+        datetime.fromisoformat(generated_at)
+    except (ValueError, UnicodeError) as error:
+        raise OverviewError(f"OUTPUT_MISMATCH: {error}") from error
+    # Time is the only input taken from the artifact. Notes, paths, metadata and
+    # graph positions always come from the current knowledge home.
+    expected = render_html({**data, "generated_at": generated_at}).encode("utf-8")
+    if actual != expected:
+        raise OverviewError("OUTPUT_MISMATCH: HTML was changed or its sources/version changed; regenerate with the approved template")
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
+        template_digest = locked_template().digest
+        if args.check_template:
+            if args.config is not None or args.knowledge_home is not None:
+                raise OverviewError("--check-template does not accept a knowledge source")
+            print("HANOS_TEMPLATE=PASS")
+            print(f"HANOS_HTML_TEMPLATE={TEMPLATE_ID}@{TEMPLATE_VERSION}")
+            print(f"HANOS_HTML_TEMPLATE_SHA256={template_digest}")
+            return 0
         root = resolve_knowledge_home(args.config, args.knowledge_home)
         data = collect_overview(root)
+        if args.verify_output is not None:
+            verify_output(args.verify_output, data)
+            print("HANOS_HTML_VERIFY=PASS")
+            print(f"HANOS_HTML_TEMPLATE={TEMPLATE_ID}@{TEMPLATE_VERSION}")
+            print(f"HANOS_HTML_TEMPLATE_SHA256={template_digest}")
+            print(f"HANOS_HTML_OUTPUT={args.verify_output.resolve()}")
+            return 0
         protected_inputs = [_registry_path(root)]
         if args.config is not None:
             protected_inputs.append(args.config)
@@ -1241,13 +1337,17 @@ def main(argv: list[str] | None = None) -> int:
         )
         output = resolve_output_path(root, args.output, protected_inputs=protected_inputs)
         write_atomic(output, render_html(data))
+        verify_output(output, data)
     except OverviewError as error:
         print(f"HANOS_HTML_ERROR={error}", file=sys.stderr)
         return 2
     except OSError as error:
-        print(f"HANOS_HTML_ERROR=unable to write output: {error}", file=sys.stderr)
+        print(f"HANOS_HTML_ERROR=unable to access output: {error}", file=sys.stderr)
         return 2
     print(f"HANOS_HTML=PASS")
+    print("HANOS_HTML_VERIFY=PASS")
+    print(f"HANOS_HTML_TEMPLATE={TEMPLATE_ID}@{TEMPLATE_VERSION}")
+    print(f"HANOS_HTML_TEMPLATE_SHA256={template_digest}")
     print(f"HANOS_HTML_OUTPUT={output.resolve()}")
     print(f"HANOS_HTML_REPOSITORIES={data['repository_count']}")
     print(f"HANOS_HTML_NOTES={data['note_count']}")

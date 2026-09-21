@@ -44,6 +44,12 @@ def check(root: Path, *, clean: bool = False) -> list[str]:
     version(root)
     if (root / "LICENSE").read_bytes() != (root / "skills/hanos/LICENSE").read_bytes():
         raise ValueError("root and installed Skill licenses differ")
+    checked = subprocess.run(
+        [sys.executable, "-B", str(root / "skills/hanos/scripts/generate_html.py"), "--check-template"],
+        capture_output=True, text=True, check=False,
+    )
+    if checked.returncode != 0:
+        raise ValueError(f"TEMPLATE_PACKAGE_INVALID: {checked.stderr.strip()}")
     exposed = subprocess.check_output(
         ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"], cwd=root
     ).decode().split("\0")

@@ -142,3 +142,17 @@ the viewport height. Wheel zoom makes fine, cursor-anchored adjustments. Notes
 open in a matching reading panel; their text is embedded in the HTML, so the
 generated file must be treated as private. The same generator and embedded
 assets ship with every client adapter, with no external font or CDN dependency.
+
+The template is locked as `midnight-atlas@1.0.0`. The package must include
+`template-lock.json`, `scripts/generate_html.py` and `scripts/star_layout.py`
+under the same Skill root. Do not install only `SKILL.md` or ask a model to
+reproduce the screenshots. Installation, packaging and generation reject drift;
+the exact HTML must pass `--verify-output` after any copy or preview. See the
+[locked template contract](../skills/hanos/references/html-view.md) for commands.
+
+For a client without a bundled adapter, use that client's documented Skill
+discovery mechanism with the complete released core and an explicit local
+configuration locator. Keep its existing knowledge root and access policy.
+Until a real client journey succeeds, treat native discovery as unverified even
+if the standalone renderer passes. All clients use the same locked renderer;
+there is no client-specific visual fallback.

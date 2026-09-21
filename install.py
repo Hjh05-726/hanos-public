@@ -7,6 +7,7 @@ import json
 import os
 import platform
 import shutil
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -632,6 +633,13 @@ def commit_install(
 def install(args: argparse.Namespace) -> int:
     if args.agent is None:
         raise InstallerError("--agent is required unless --doctor is used")
+
+    checked = subprocess.run(
+        [sys.executable, "-B", str(CORE_SOURCE / "scripts/generate_html.py"), "--check-template"],
+        capture_output=True, text=True, check=False,
+    )
+    if checked.returncode != 0:
+        raise InstallerError(f"TEMPLATE_PACKAGE_INVALID: {checked.stderr.strip()}")
 
     home = safe_resolve(args.home, "install home")
     config_dir = home / ".config/hanos"

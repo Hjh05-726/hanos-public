@@ -47,7 +47,37 @@ def run_installer(*arguments: str) -> subprocess.CompletedProcess[str]:
     )
 
 
+def normalize_generation_time(rendered: str) -> str:
+    payload = json.loads(re.search(
+        r'<script type="application/json" id="hanos-overview-data">(.*?)</script>',
+        rendered, re.DOTALL,
+    ).group(1))
+    timestamp = payload["generated_at"]
+    normalized = rendered.replace(
+        f'"generated_at":"{timestamp}"', '"generated_at":"<generation-time>"', 1,
+    )
+    header, body = normalized.split("</header>", 1)
+    header = header.replace(f"生成于 {timestamp}", "生成于 <generation-time>", 1)
+    return header + "</header>" + body
+
+
 class CrossAgentPackageTests(unittest.TestCase):
+    def test_generation_time_normalization_preserves_matching_note_timestamps(self) -> None:
+        modified = "2026-01-01T00:00:00+00:00"
+        later = "2026-01-01T00:00:01+00:00"
+
+        def example(generated_at: str, source_time: str) -> str:
+            data = json.dumps({"generated_at": generated_at, "latest_modified": source_time,
+                               "notes": [{"modified": source_time}]}, separators=(",", ":"))
+            return (f'<header id="page-header">生成于 {generated_at}</header>'
+                    f'<script type="application/json" id="hanos-overview-data">{data}</script>')
+
+        first = normalize_generation_time(example(modified, modified))
+        second = normalize_generation_time(example(later, modified))
+        self.assertEqual(first, second)
+        self.assertIn(f'"modified":"{modified}"', first)
+        self.assertNotEqual(second, normalize_generation_time(example(later, later)))
+
     def test_every_client_installs_the_same_standalone_atlas(self) -> None:
         # A new user's installed entry point must reproduce the public renderer,
         # without the developer's paths, fonts, cache, or adjacent asset files.
@@ -61,6 +91,8 @@ class CrossAgentPackageTests(unittest.TestCase):
                 )
                 self.assertEqual(installed.returncode, 0, installed.stdout + installed.stderr)
                 canonical = home / ".agents/skills/hanos"
+                self.assertEqual((canonical / "template-lock.json").read_bytes(),
+                                 (CORE / "template-lock.json").read_bytes())
                 for name in ("generate_html.py", "star_layout.py"):
                     self.assertEqual(
                         (canonical / "scripts" / name).read_bytes(),
@@ -71,6 +103,7 @@ class CrossAgentPackageTests(unittest.TestCase):
                     "独立安装的笔记。[[尚未记录的灵感]] #研究\n", encoding="utf-8",
                 )
                 outputs = []
+                complete_outputs = []
                 for index, script in enumerate((CORE / "scripts/generate_html.py",
                                                 canonical / "scripts/generate_html.py")):
                     output = root / f"standalone-{index}.html"
@@ -80,7 +113,15 @@ class CrossAgentPackageTests(unittest.TestCase):
                         cwd=root, capture_output=True, text=True, check=False,
                     )
                     self.assertEqual(generated.returncode, 0, generated.stderr)
+                    verified = subprocess.run(
+                        [sys.executable, str(script), "--config",
+                         str(home / ".config/hanos/config.json"), "--verify-output", str(output)],
+                        cwd=root, capture_output=True, text=True, check=False,
+                    )
+                    self.assertEqual(verified.returncode, 0, verified.stderr)
+                    self.assertIn("HANOS_HTML_VERIFY=PASS", verified.stdout)
                     rendered = output.read_text(encoding="utf-8")
+                    complete_outputs.append(normalize_generation_time(rendered))
                     self.assertIn('data-theme="midnight-atlas"', rendered)
                     self.assertIn("一位新用户的知识星图", rendered)
                     self.assertNotRegex(rendered, r'<(?:script|link|img)\b[^>]*(?:src|href)=')
@@ -91,6 +132,27 @@ class CrossAgentPackageTests(unittest.TestCase):
                         r"<style>(.*?)</style>|<script>(.*?)</script>", rendered, re.DOTALL,
                     ))
                 self.assertEqual(outputs[0], outputs[1])
+                self.assertEqual(complete_outputs[0], complete_outputs[1])
+
+    def test_installer_rejects_renderer_drift_before_creating_a_home(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "distribution"
+            shutil.copytree(CORE, source / "skills/hanos")
+            shutil.copy2(ROOT / "install.py", source / "install.py")
+            shutil.copy2(ROOT / "VERSION", source / "VERSION")
+            generator = source / "skills/hanos/scripts/generate_html.py"
+            generator.write_text(generator.read_text().replace("--paper:#080f1c", "--paper:#ffffff"))
+            home = root / "new-home"
+            rejected = subprocess.run(
+                [sys.executable, str(source / "install.py"), "--agent", "codex",
+                 "--home", str(home), "--knowledge-home", str(root / "knowledge"),
+                 "--display-name", "Atlas", "--yes"],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("TEMPLATE_PACKAGE_INVALID", rejected.stderr)
+            self.assertFalse(home.exists())
 
     def test_html_runtime_cache_does_not_block_doctor_or_reinstall(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -111,6 +173,15 @@ class CrossAgentPackageTests(unittest.TestCase):
                 env=environment, capture_output=True, text=True, check=False,
             )
             self.assertEqual(generated.returncode, 0, generated.stderr)
+            # Simulate caches left by an older runtime; the locked renderer no
+            # longer creates or loads a layout cache itself.
+            cached = subprocess.run(
+                [sys.executable, "-X", "pycache_prefix=", "-c",
+                 "import py_compile, sys; py_compile.compile(sys.argv[1], doraise=True)",
+                 str(canonical / "scripts/star_layout.py")],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(cached.returncode, 0, cached.stderr)
             self.assertTrue(list(canonical.rglob("*.pyc")))
             doctor = run_installer("--doctor", "--home", str(home))
             self.assertEqual(doctor.returncode, 0, doctor.stdout + doctor.stderr)

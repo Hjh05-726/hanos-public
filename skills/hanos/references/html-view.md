@@ -6,6 +6,36 @@ When the user asks to open or see the view, open the generated HTML in an availa
 
 ## Generate the view
 
+### Locked template contract — all agents and models
+
+The only approved renderer is the bundled `scripts/generate_html.py` with
+`scripts/star_layout.py` and `template-lock.json` from the same package. The
+template is `midnight-atlas@1.0.0`. This requirement applies to every client and
+model, including clients outside the native support matrix.
+
+- Agents supply only the resolved knowledge source and output path. Colors,
+  typography, page structure, controls, motion, responsive rules, graph layout
+  algorithm, search and reader behavior are fixed by the shipped code.
+- Never generate replacement HTML/CSS/JavaScript, reproduce the UI from a
+  screenshot, post-process generated markup, add a client-specific theme, or
+  rewrite the lock to make a failed check pass. Do not use another skill's
+  frontend design defaults for this view.
+- A missing renderer, layout, lock, or Python runtime is an installation error.
+  A hash mismatch is template drift. Report the exact failure and restore the
+  approved package; do not improvise an alternative page.
+- Content, counts, paths, timestamps and data-derived node positions may vary.
+  The template and interaction code may not. System fonts and browser rendering
+  can differ; byte-identical template code is the enforced invariant.
+- A deliberate template upgrade requires an explicit request to change the
+  shared HanOS template, a new template version, updated lock hashes, and
+  regression/installation checks. A routine view request never authorizes this.
+
+The generator checks the exact asset hashes before reading notes or writing
+output, embeds template identity/digest metadata, and verifies every output byte
+before reporting `HANOS_HTML=PASS` and `HANOS_HTML_VERIFY=PASS`. These checks detect
+drift against the shipped lock; they are not a digital signature or protection
+against an actor replacing both the verifier and lock.
+
 After resolving the client config and validating the repository registry, run the bundled script:
 
 ```bash
@@ -26,6 +56,27 @@ installation without the JSON config, pass an existing knowledge home directly:
 cd "<SKILL_DIR>" && python3 scripts/generate_html.py --knowledge-home "/absolute/path/to/knowledge-home" \
   --output "/absolute/path/to/knowledge-overview.html"
 ```
+
+Check a complete installation without reading private notes:
+
+```bash
+python3 scripts/generate_html.py --check-template
+```
+
+Before handing off a copied or previewed HTML, verify the exact delivery file:
+
+```bash
+python3 scripts/generate_html.py --config "<CONFIG_PATH>" --verify-output "<HTML_PATH>"
+```
+
+For a legacy/standalone vault, replace `--config` with `--knowledge-home` as
+above. Verification is read-only: it re-reads the same registered knowledge,
+preserves only the artifact's generation timestamp, and compares the complete
+HTML with a fresh render. Changed source notes also require regeneration.
+`HANOS_HTML_VERIFY=PASS` is required; a familiar title or copied metadata is
+insufficient. If a preview host injects markup or rewrites the file, preserve the
+canonical output under `.hanos`, deliver that original file, and report that the
+host-modified preview failed verification. Do not weaken checks for that host.
 
 The script reads the active entries from `.hanos/repositories.json` and accepts the legacy `.hanos/repositories.yaml` shape as a compatibility fallback. It validates every active repository path, including symbolic links, before reading it. A missing registry or an escaping path is an error; the script never invents a repository. The default output directory must remain inside the knowledge home; an explicitly requested `--output` may be a separate local path.
 

@@ -18,10 +18,14 @@ class ReleaseToolTests(unittest.TestCase):
         (root / "skills/hanos").mkdir(parents=True)
         files = {"VERSION": "0.1.0-preview.1\n", "LICENSE": "fixture license\n",
                  "skills/hanos/LICENSE": "fixture license\n"}
+        source_core = Path(__file__).resolve().parents[1] / "skills/hanos"
+        for name in ("template-lock.json", "scripts/generate_html.py", "scripts/star_layout.py"):
+            files[f"skills/hanos/{name}"] = (source_core / name).read_text(encoding="utf-8")
         names = sorted([*files, "release-files.txt", ".gitignore"])
         files["release-files.txt"] = "\n".join(names) + "\n"
-        files[".gitignore"] = "*\n!skills/\n!skills/hanos/\n" + "\n".join("!" + p for p in names) + "\n"
+        files[".gitignore"] = "*\n!skills/\n!skills/hanos/\n!skills/hanos/scripts/\n" + "\n".join("!" + p for p in names) + "\n"
         for name, content in files.items():
+            (root / name).parent.mkdir(parents=True, exist_ok=True)
             (root / name).write_text(content, encoding="utf-8")
         for command in (["git", "init", "-q"], ["git", "add", "--", *names],
                         ["git", "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
@@ -38,6 +42,16 @@ class ReleaseToolTests(unittest.TestCase):
             self.assertFalse((result / "private.md").exists())
             self.assertFalse((result / ".git").exists())
             self.assertEqual((root / "private.md").read_text(), "Private fixture, never export.")
+
+    def test_release_refuses_changed_template_before_exporting(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary).resolve()
+            root = self.fixture(parent)
+            layout = root / "skills/hanos/scripts/star_layout.py"
+            layout.write_text(layout.read_text(encoding="utf-8") + "\n# unexpected change\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "TEMPLATE_PACKAGE_INVALID"):
+                export(root, parent / "public")
+            self.assertFalse((parent / "public").exists())
 
     def test_archives_are_reproducible_and_match_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

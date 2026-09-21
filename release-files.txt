@@ -48,6 +48,7 @@ scripts/demo.py
 scripts/release.py
 skills/hanos/LICENSE
 skills/hanos/SKILL.md
+skills/hanos/template-lock.json
 skills/hanos/references/cyber-diary.md
 skills/hanos/references/html-view.md
 skills/hanos/references/invocation-examples.md

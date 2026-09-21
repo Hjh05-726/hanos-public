@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 from html.parser import HTMLParser
 import shutil
 import subprocess
@@ -18,6 +19,122 @@ SCRIPT = ROOT / "skills/hanos/scripts/generate_html.py"
 
 
 class HtmlDashboardTests(unittest.TestCase):
+    def test_stale_layout_bytecode_cannot_change_the_locked_render(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            temporary = Path(directory)
+            _root, config = self.make_knowledge_home(temporary)
+            core = temporary / "installed-skill"
+            shutil.copytree(ROOT / "skills/hanos", core,
+                            ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+            command = [sys.executable, "-X", "pycache_prefix=",
+                       str(core / "scripts/generate_html.py"), "--config", str(config)]
+            baseline = temporary / "baseline.html"
+            generated = subprocess.run(command + ["--output", str(baseline)],
+                                       capture_output=True, text=True, check=False)
+            self.assertEqual(generated.returncode, 0, generated.stderr)
+            layout = core / "scripts/star_layout.py"
+            original, metadata = layout.read_bytes(), layout.stat()
+            changed = original.replace(b"FONT_SIZE = 11.0", b"FONT_SIZE = 21.0")
+            self.assertNotEqual(changed, original)
+            self.assertEqual(len(changed), len(original))
+            layout.write_bytes(changed)
+            os.utime(layout, ns=(metadata.st_atime_ns, metadata.st_mtime_ns))
+            compiled = subprocess.run(
+                [sys.executable, "-X", "pycache_prefix=", "-c",
+                 "import py_compile, sys; py_compile.compile(sys.argv[1], doraise=True, "
+                 "invalidation_mode=py_compile.PycInvalidationMode.TIMESTAMP)", str(layout)],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(compiled.returncode, 0, compiled.stderr)
+            self.assertTrue(list((core / "scripts/__pycache__").glob("star_layout.*.pyc")))
+            layout.write_bytes(original)
+            os.utime(layout, ns=(metadata.st_atime_ns, metadata.st_mtime_ns))
+            output = temporary / "after-cache.html"
+            generated = subprocess.run(command + ["--output", str(output)],
+                                       capture_output=True, text=True, check=False)
+            self.assertEqual(generated.returncode, 0, generated.stderr)
+            marker = '<script type="application/json" id="hanos-overview-data">'
+            expected = json.loads(baseline.read_text(encoding="utf-8").split(marker)[1].split("</script>")[0])
+            actual = json.loads(output.read_text(encoding="utf-8").split(marker)[1].split("</script>")[0])
+            self.assertEqual(actual["graph"], expected["graph"])
+            verified = subprocess.run(command + ["--verify-output", str(baseline)],
+                                      capture_output=True, text=True, check=False)
+            self.assertEqual(verified.returncode, 0, verified.stderr)
+            self.assertIn("HANOS_HTML_VERIFY=PASS", verified.stdout)
+
+    def test_changed_template_cannot_generate_or_replace_an_existing_output(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            temporary = Path(directory)
+            _root, config = self.make_knowledge_home(temporary)
+            core = temporary / "installed-skill"
+            shutil.copytree(ROOT / "skills/hanos", core)
+            generator = core / "scripts/generate_html.py"
+            generator.write_text(generator.read_text(encoding="utf-8").replace(
+                "--paper:#080f1c", "--paper:#ffffff"), encoding="utf-8")
+            output = temporary / "existing.html"
+            original = b"<!doctype html><p>Preserve this previous view</p>"
+            output.write_bytes(original)
+            result = subprocess.run(
+                [sys.executable, str(generator), "--config", str(config), "--output", str(output)],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(result.returncode, 2, result.stdout)
+            self.assertIn("TEMPLATE_DRIFT", result.stderr)
+            self.assertEqual(output.read_bytes(), original)
+
+    def test_verify_output_rejects_changes_to_visuals_behavior_and_source_data(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            temporary = Path(directory)
+            root, config = self.make_knowledge_home(temporary)
+            output = temporary / "atlas.html"
+            generated = self.run_generator("--config", str(config), "--output", str(output))
+            self.assertEqual(generated.returncode, 0, generated.stderr)
+            original = output.read_text(encoding="utf-8")
+            verified = self.run_generator("--config", str(config), "--verify-output", str(output))
+            self.assertEqual(verified.returncode, 0, verified.stderr)
+            self.assertIn("HANOS_HTML_VERIFY=PASS", verified.stdout)
+            for before, after in (
+                ("--paper:#080f1c", "--paper:#ffffff"),
+                ("<body data-theme=", '<body data-page-node-id="host-rewrite" data-theme='),
+                ("const search =", "const brokenSearch ="),
+                ("让散落的思考，连成自己的星空。", "A new model-written heading"),
+            ):
+                with self.subTest(change=before):
+                    self.assertIn(before, original)
+                    changed = original.replace(before, after)
+                    output.write_text(changed, encoding="utf-8")
+                    rejected = self.run_generator("--config", str(config), "--verify-output", str(output))
+                    self.assertEqual(rejected.returncode, 2, rejected.stdout)
+                    self.assertIn("OUTPUT_MISMATCH", rejected.stderr)
+                    self.assertEqual(output.read_text(encoding="utf-8"), changed)
+            output.write_text(original, encoding="utf-8")
+            note = root / "global/00_Overview.md"
+            note.write_text("# Updated source\n\nA new fact.\n", encoding="utf-8")
+            stale = self.run_generator("--config", str(config), "--verify-output", str(output))
+            self.assertEqual(stale.returncode, 2)
+            self.assertIn("OUTPUT_MISMATCH", stale.stderr)
+
+    def test_missing_lock_or_layout_fails_without_creating_output(self) -> None:
+        for missing in ("template-lock.json", "scripts/star_layout.py"):
+            with self.subTest(missing=missing), tempfile.TemporaryDirectory() as directory:
+                temporary = Path(directory)
+                _root, config = self.make_knowledge_home(temporary)
+                core = temporary / "installed-skill"
+                shutil.copytree(ROOT / "skills/hanos", core)
+                target = core / missing
+                if target.exists():
+                    target.unlink()
+                output = temporary / "must-not-exist.html"
+                result = subprocess.run(
+                    [sys.executable, str(core / "scripts/generate_html.py"),
+                     "--config", str(config), "--output", str(output)],
+                    capture_output=True, text=True, check=False,
+                )
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertIn("TEMPLATE_", result.stderr)
+                self.assertNotIn("Traceback", result.stderr)
+                self.assertFalse(output.exists())
+
     def test_landscape_graph_keeps_complete_titles_inside_without_overlap(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root, _config = self.make_knowledge_home(Path(directory))

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.1.0-preview.3 — 2026-09-21
+
+- Locked the shared HTML renderer and constellation layout as `midnight-atlas@1.0.0` using a shipped SHA-256 manifest. Missing or changed assets fail before output is written.
+- Added `--check-template` and read-only `--verify-output`; generation verifies the complete HTML before reporting success. Modified markup, styles, scripts, host-injected attributes and changed source notes require regeneration.
+- Required all agents and models to use the bundled renderer without screenshot imitation, client-specific redesign or model-written fallback pages. Template upgrades require an explicit shared-version change.
+- Added template integrity checks to installation and public-package validation, with regression coverage for drift, missing assets, source changes and preserved existing output.
+- Verified complete HTML parity, apart from generation timestamps, across five isolated client installations. This is packaging/renderer evidence, not a native runtime claim for every client or model.
+- Upgrade with the existing knowledge home and display name, reload the Skill, and regenerate HTML. Existing knowledge is not migrated; older generated files must be regenerated to pass verification.
+
 ## 0.1.0-preview.2 — 2026-09-18
 
 - Separated knowledge-workflow activation, HTML viewing and explicit Obsidian requests; activation no longer implicitly launches a note application.
