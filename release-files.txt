@@ -70,3 +70,14 @@ tests/test_native_journey.py
 tests/test_release_package.py
 tests/test_release_tool.py
 tests/test_star_layout.py
+skills/hanos/scripts/knowledge.py
+skills/hanos/scripts/knowledge_read.py
+skills/hanos/scripts/knowledge_write.py
+skills/hanos/scripts/knowledge_import.py
+skills/hanos/references/knowledge-tools.md
+docs/knowledge-query.md
+docs/knowledge-operations.md
+tests/test_knowledge_read.py
+tests/test_knowledge_write.py
+tests/test_stage_a_native.py
+tests/behavioral-evals/run_stage_a.py

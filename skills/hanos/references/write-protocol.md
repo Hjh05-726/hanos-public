@@ -53,3 +53,12 @@ acceptance criteria” stays an assistant suggestion until explicitly adopted.
 - Re-read every changed file, validate links and indexes in the affected scope, and state exactly what changed.
 
 If the instruction contains another task, continue it using the updated knowledge.
+
+## Checked execution route
+
+Use [knowledge-tools.md](knowledge-tools.md): read the installed tool result,
+make a local edit plan bound to its SHA-256, review the preview under existing
+authorization, apply and inspect disk-backed results. Include required indexes.
+Explicit materials use import-plan with faithful attribution and coverage; daily
+capture uses only the minimal plan. No bare-write fallback when the tool is
+missing or fails. Corrections preserve labelled old statements and their sources.

@@ -47,3 +47,11 @@
 - Added zero-write target preflight, bidirectional source/knowledge-home separation, authority-file and symbolic-link containment, fail-closed reinstall, Codex-block ownership, and broken-registry handling, structured malformed-input and symlink-loop failures, stale-backup rollback, complete schema and adapter checks, install-path containment, and Unicode display-name hardening.
 - Moved public configuration to JSON templates and separated the private knowledge home from the source tree.
 - Added a fictional demo knowledge base, identity-bound machine-readable native evaluations, an isolated release-candidate Git-index privacy gate, privacy documentation, and a portability report with explicit `NOT_RUN` behavioral evidence boundaries.
+
+## 0.1.0-preview.4 (local candidate)
+
+- Scoped evidence lookup with note aliases, basic properties, sections and actual backlinks.
+- Byte-preserved text imports with attributed source mappings and explicit coverage limits.
+- Version-checked edit plans, idempotent operations, per-file journals and conflict-preserving recovery.
+- Installed Skill routing and opt-in isolated Codex Stage A acceptance.
+- Existing Markdown and the locked midnight-atlas renderer remain compatible.

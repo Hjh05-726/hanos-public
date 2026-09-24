@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import json
 import runpy
 import sys
 import tempfile
@@ -67,3 +68,21 @@ class NativeJourneyVerifierTests(unittest.TestCase):
             self.assertNotEqual(before, JOURNEY["files_digest"](root))
             (root / "module.py").write_text("print('changed')\n")
             self.assertNotEqual(before, JOURNEY["files_digest"](root, ignore_runtime=True))
+
+    def test_authority_write_requires_journal_and_rejects_other_knowledge_changes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            logs = root / ".hanos/operations"
+            logs.mkdir(parents=True)
+            (logs / "operation.json").write_text(json.dumps({"status": "applied", "plan": {
+                "root": str(root), "changes": [{"path": "authority.md",
+                                                 "before_sha256": "old", "after_sha256": "new"}]}}))
+            before = {"authority.md": "old"}
+            after = {"authority.md": "new", ".hanos/operations/operation.json": "journal"}
+            JOURNEY["require_authority_mutation"](root, before, after, "authority.md")
+            for invalid in ({"authority.md": "new"},
+                            {**after, "other-note.md": "unrelated"},
+                            {**after, ".hanos/repositories.json": "changed"},
+                            {"authority.md": "old", ".hanos/operations/operation.json": "journal"}):
+                with self.assertRaises(RuntimeError):
+                    JOURNEY["require_authority_mutation"](root, before, invalid, "authority.md")

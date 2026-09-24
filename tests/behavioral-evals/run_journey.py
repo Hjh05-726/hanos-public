@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 import run_native as native
+from run_stage_a import require_journalled_changes
 
 
 def preserves_original_lines(original: str, updated: str) -> bool:
@@ -23,6 +24,15 @@ def files_digest(root: Path, *, ignore_runtime: bool = False) -> dict[str, str]:
     return {p.relative_to(root).as_posix(): native.file_sha256(p)
             for p in root.rglob("*") if p.is_file()
             and not (ignore_runtime and ("__pycache__" in p.parts or p.suffix == ".pyc"))}
+
+
+def require_authority_mutation(knowledge: Path, before: dict[str, str],
+                               after: dict[str, str], authority: str) -> None:
+    changed = {path for path in before.keys() | after.keys() if before.get(path) != after.get(path)}
+    if authority not in changed or any(path != authority and not path.startswith(".hanos/operations/")
+                                       for path in changed):
+        raise RuntimeError("modified unexpected knowledge files or left authority unchanged")
+    require_journalled_changes(knowledge, before, after)
 
 
 def run_step(executable: str, workspace: Path, name: str, prompt: str, timeout: int) -> str:
@@ -85,8 +95,7 @@ def evaluate(workspace: Path, timeout: int) -> None:
     authority_key = authority.relative_to(knowledge).as_posix()
     if old not in body or not preserves_original_lines(original, body):
         raise RuntimeError("record: exact fact missing or existing authority not preserved")
-    if {p for p in set(before) | set(after) if before.get(p) != after.get(p)} != {authority_key}:
-        raise RuntimeError("record: modified unexpected knowledge files")
+    require_authority_mutation(knowledge, before, after, authority_key)
     passed("record")
 
     before = files_digest(knowledge)
@@ -106,8 +115,7 @@ def evaluate(workspace: Path, timeout: int) -> None:
     if (old not in body or new not in body or "NOT_PROVEN" not in body
             or not preserves_original_lines(original, body)):
         raise RuntimeError("correct: old or new value or evidence boundary missing")
-    if {p for p in set(before) | set(after) if before.get(p) != after.get(p)} != {authority_key}:
-        raise RuntimeError("correct: modified unexpected knowledge files")
+    require_authority_mutation(knowledge, before, after, authority_key)
     # This lexical check does not replace review of the saved note's meaning.
     if not any(word in body.lower() for word in ("superseded", "historical", "已取代", "已被", "旧值")):
         raise RuntimeError("correct: superseded history label missing; inspect saved note")

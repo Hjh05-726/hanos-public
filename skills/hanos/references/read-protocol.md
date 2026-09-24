@@ -15,3 +15,12 @@ Use this protocol for lookup, analysis, search, audit, handoff, and task-context
 For an audit, report duplicates, conflicts, stale-risk items, broken links, and evidence gaps. Do not silently merge, delete, archive, or rewrite them.
 
 For a handoff or task context, include only the goal, current state, decisions, constraints, open questions, and evidence paths needed by the next task. Save it only when explicitly requested.
+
+## Tool route
+
+After authority selection, use the installed `knowledge.py` query/read/backlinks
+commands in [knowledge-tools.md](knowledge-tools.md). Follow source references
+with explicit `read --source`; ordinary search excludes operation backups.
+Report scope, current read hash, real excerpt locations, ambiguity and absence.
+Conflicting or keyword-only candidates are not established answers. Pure read
+requests do not generate a plan, index, capture, or recovery record.
