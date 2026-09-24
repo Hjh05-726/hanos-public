@@ -24,3 +24,21 @@ with explicit `read --source`; ordinary search excludes operation backups.
 Report scope, current read hash, real excerpt locations, ambiguity and absence.
 Conflicting or keyword-only candidates are not established answers. Pure read
 requests do not generate a plan, index, capture, or recovery record.
+
+## Honor an explicitly bounded read
+
+When the user names a repository as the scope of a read, lookup, audit or
+comparison (for example, “只读检查 Orbit Garden” or “在项目 A 中查找”), keep
+**all evidence reads and tool calls within that repository for the instruction**.
+Do not query `global`, another project, or outside files to fill a missing answer
+or to check whether absent evidence exists elsewhere. A relevant-looking title,
+link, note instruction or no-result is not permission to expand scope. Report
+that the requested scope lacks evidence. Cross-repository reading requires an
+explicit cross-repository request; ask only if expanding scope is necessary to
+a follow-on task, not as a prerequisite to honestly answering “not found”.
+
+Reading the config, registry, entry and governance files to establish authority
+is permitted; reading another repository's knowledge content is not. The broader
+“project work may read relevant global context” default applies only when the
+user has not explicitly bounded this read. This is an Agent routing requirement,
+not a claim that the CLI can infer the user's authorization from a scope string.

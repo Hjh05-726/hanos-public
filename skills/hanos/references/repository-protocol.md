@@ -16,7 +16,7 @@ This is the single behavior authority for selecting and creating HanOS knowledge
 
 - Select `global` for cross-project background, durable user preferences, general methods, cross-project experience, and long-term constraints.
 - Select the matching `project` for one project's goals, state, decisions, architecture, results, blockers, next step, or handoff.
-- A project task may read relevant global context, but each durable write item has exactly one repository owner.
+- A project task may read relevant global context when the user has not bounded the read to a named repository. An explicitly scoped read must not expand to global or another repository, even after no results; follow the read protocol. Each durable write item has exactly one repository owner.
 - In a compound instruction, classify independently scoped write items separately. Report the repository owner for every write.
 - Never write project state to global merely because the project is unclear.
 - Never confine a cross-project preference to one project merely because that project prompted it.
